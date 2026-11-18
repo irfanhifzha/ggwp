@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { Panel, PanelPatch, PanelType, WorkspaceData } from '../types'
+import type { PanelPatch, PanelType, WorkspaceData } from '../types'
+import { PanelContent } from './PanelContent'
 import { PanelShell } from './PanelShell'
 
 interface WorkspaceProps {
@@ -9,10 +10,6 @@ interface WorkspaceProps {
   onMove: (id: string, direction: -1 | 1) => void
   onReorder: (id: string, targetId: string) => void
   onAdd: (type: PanelType) => void
-}
-
-function PanelPlaceholder({ panel }: { panel: Panel }) {
-  return <p className="panel-placeholder">{panel.type} panel</p>
 }
 
 export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onAdd }: WorkspaceProps) {
@@ -59,7 +56,7 @@ export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onA
             setDraggingId('')
           }}
         >
-          <PanelPlaceholder panel={panel} />
+          <PanelContent panel={panel} onPatch={onPatch} />
         </PanelShell>
       ))}
     </div>

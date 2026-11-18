@@ -186,10 +186,162 @@
   overflow: hidden;
 }
 
-.panel-placeholder {
+/* ---------- Panel content ---------- */
+
+.field {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.field:hover {
+  border-color: var(--border-strong);
+}
+
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 16px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.panel-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.form-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+/* Text */
+
+.text-editor {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  resize: none;
+  background: transparent;
+  padding: 14px 16px 24px;
+  font: 15px/1.65 var(--sans);
+  tab-size: 2;
+}
+
+.text-editor:focus-visible {
+  outline: none;
+}
+
+/* PDF */
+
+.pdf-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.pdf-form {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  flex: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf-frame {
+  flex: 1;
+  width: 100%;
+  min-height: 220px;
+  border: 0;
+  background: #ffffff;
+}
+
+.pdf-body > .panel-hint,
+.pdf-body > .form-error {
+  flex: none;
+  padding: 6px 10px;
+}
+
+/* Bookmarks */
+
+.bookmarks-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bookmark-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bookmark-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.bookmark-form-row .field {
+  flex: 1;
+}
+
+.bookmark-form-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.bookmark-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.bookmark-item {
+  position: relative;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.bookmark-link {
+  display: inline-block;
+  max-width: 100%;
+  padding-right: 48px;
+  color: var(--text);
+  font-size: 14px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-link:hover {
+  text-decoration: underline;
+}
+
+.bookmark-note {
+  padding-right: 48px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.bookmark-item-actions {
+  position: absolute;
+  top: 4px;
+  right: -4px;
+  display: flex;
+  gap: 2px;
 }
 
 @media (max-width: 720px) {
