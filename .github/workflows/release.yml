@@ -1,0 +1,78 @@
+name: Release
+
+# Tag a version to build installers, or run it manually to produce draft assets.
+# Keep the tag in sync with the version in src-tauri/tauri.conf.json.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ''
+          - platform: macos-latest
+            args: '--target universal-apple-darwin'
+    steps:
+      - uses: actions/checkout@v4
+
+      # tauri-action derives the release tag from the app version, so a mismatched
+      # git tag would silently publish under the wrong name.
+      - name: Check tag matches app version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          version="v$(node -p 'require("./src-tauri/tauri.conf.json").version')"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match app version $version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Universal macOS binary needs both architectures; Windows builds x64 by default.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - run: npm ci
+
+      # tauri-action also runs beforeBuildCommand (npm run build), so a type or
+      # Vite error fails the release instead of shipping a broken artifact.
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'ggwp v__VERSION__'
+          releaseBody: |
+            Desktop builds for Windows and macOS.
+
+            - Windows: NSIS installer (`.exe`)
+            - macOS: universal `.dmg` (Apple Silicon + Intel)
+
+            These builds are unsigned. Windows shows a SmartScreen prompt; on macOS,
+            right-click the app → Open the first time.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

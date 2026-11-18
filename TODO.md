@@ -276,8 +276,9 @@ and `npm run build` for web has no new dependencies in the main chunk.
 - [ ] macOS: build on a Mac (or GitHub Actions `macos-latest`): `aarch64-apple-darwin` +
       `x86_64-apple-darwin` universal if cheap (`.app`, `.dmg`). Verify Gatekeeper launch after
       right-click → Open if unsigned.
-- [ ] CI (optional, only if wanted): GitHub Actions matrix — windows-latest + macos-latest,
-      `tauri-apps/tauri-action`, upload artifacts. No signing secrets in v1.
+- [x] CI: `.github/workflows/release.yml` — windows-latest + macos-latest (universal dmg),
+      `tauri-apps/tauri-action`, tag-triggered draft release, no signing secrets. Runs still
+      unverified until the first tagged push.
 - [ ] Optional later: Windows code signing (Azure Trusted Signing) and macOS Developer ID +
       notarization. This costs money and adds release friction — decide separately.
 - [ ] README: add a "Desktop builds" section (prereqs, dev command, build output paths, unsigned-
