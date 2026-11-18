@@ -125,7 +125,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-bar">
-        <h1 className="app-title">GreatGridWorkspace</h1>
+        <h1 className="app-title">ggwplab.pages.dev</h1>
         <div className="columns-control" role="group" aria-label="Grid columns">
           <span className="columns-label">Columns</span>
           <button
