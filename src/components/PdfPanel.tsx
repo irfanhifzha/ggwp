@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { openExternal } from '../platform'
 import type { PanelPatch, PdfPanel as PdfPanelData } from '../types'
 import { normalizeHttpUrl } from '../url'
 
@@ -62,8 +63,14 @@ export function PdfPanel({ panel, onPatch }: PdfPanelProps) {
           />
           <p className="panel-hint">
             Document not showing?{' '}
-            <a href={panel.url} target="_blank" rel="noreferrer noopener">
-              Open it in a new tab
+            <a
+              href={panel.url}
+              onClick={(event) => {
+                event.preventDefault()
+                void openExternal(panel.url)
+              }}
+            >
+              Open it in your browser
             </a>
             . Some sites block embedding.
           </p>

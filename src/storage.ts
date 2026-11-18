@@ -224,12 +224,7 @@ export function serializeWorkspace(workspace: WorkspaceData): string {
   )
 }
 
-export function downloadWorkspace(workspace: WorkspaceData): void {
-  const blob = new Blob([serializeWorkspace(workspace)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `ggwp-${new Date().toISOString().slice(0, 10)}.json`
-  link.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+/** Portable default file name for an export, used by both web and desktop saves. */
+export function exportFileName(): string {
+  return `ggwp-${new Date().toISOString().slice(0, 10)}.json`
 }

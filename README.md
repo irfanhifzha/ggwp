@@ -28,6 +28,25 @@ npm run preview  # serve the production build
 npm run lint     # oxlint
 ```
 
+## Desktop app (Windows / macOS)
+
+The same codebase ships as a native window via [Tauri 2](https://v2.tauri.app/): the system
+webview renders the existing React app, so the installer stays a few megabytes instead of
+bundling a browser engine. `src/platform/` is the only place that knows about the shell — the
+web build falls back to the plain browser APIs.
+
+**One-time prereqs:** [Rust](https://rustup.rs/) plus the platform build tools (MSVC C++ build
+tools on Windows; Xcode command line tools on macOS). WebView2 ships with Windows 10/11.
+
+```bash
+npm run desktop:dev     # run the desktop window against the Vite dev server
+npm run desktop:build   # installer in src-tauri/target/release/bundle/
+npm run icon            # regenerate all icon sizes from scripts/make-icon.mjs
+```
+
+Desktop bundles are unsigned in this repo: expect a SmartScreen prompt on Windows and a
+right-click → Open on macOS.
+
 ## Using the workspace
 
 | Action | How |
@@ -123,4 +142,5 @@ These answer the open questions in `PLAN.md` with the simplest maintainable opti
   an "open in a new tab" fallback.
 - Local PDF files are not supported — only URLs.
 - `localStorage` is per-browser and per-device; use export/import to move a workspace.
+- In the desktop build, PDF viewing still relies on the system webview (WebView2 renders PDFs; on macOS the panel falls back to opening the document in your browser).
 - Drag reordering uses a mouse; on touch devices use the arrow buttons.

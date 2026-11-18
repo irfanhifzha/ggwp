@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { openTextFile } from '../platform'
 import { parseWorkspaceText } from '../storage'
 import type { WorkspaceData } from '../types'
 
@@ -15,7 +16,6 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
   const [pasteText, setPasteText] = useState('')
   const [error, setError] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const closeModal = useCallback(() => {
@@ -81,6 +81,16 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
     try {
       const text = await file.text()
       handleProcessText(text)
+    } catch {
+      setError('Could not read file.')
+    }
+  }
+
+  const handleChooseFile = async () => {
+    try {
+      const picked = await openTextFile()
+      if (!picked) return
+      handleProcessText(picked.text)
     } catch {
       setError('Could not read file.')
     }
@@ -179,7 +189,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                 const file = e.dataTransfer.files?.[0]
                 if (file) void handleFile(file)
               }}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => void handleChooseFile()}
             >
               <div className="import-dropzone-icon" aria-hidden="true">
                 📁
@@ -192,24 +202,11 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
                 className="toolbar-button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  fileInputRef.current?.click()
+                  void handleChooseFile()
                 }}
               >
                 Choose File
               </button>
-              <input
-                ref={fileInputRef}
-                className="visually-hidden"
-                type="file"
-                accept="application/json,.json"
-                tabIndex={-1}
-                aria-hidden="true"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) void handleFile(file)
-                  e.target.value = ''
-                }}
-              />
             </div>
           ) : (
             <div className="import-paste-pane">

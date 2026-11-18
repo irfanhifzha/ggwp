@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { openExternal } from '../platform'
 import { createId } from '../storage'
 import type { Bookmark, BookmarksPanel, PanelPatch } from '../types'
 import { normalizeHttpUrl } from '../url'
@@ -159,8 +160,11 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                 <a
                   className="bookmark-link"
                   href={bookmark.url}
-                  target="_blank"
                   rel="noreferrer noopener"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    void openExternal(bookmark.url)
+                  }}
                 >
                   {bookmark.title || bookmark.url}
                 </a>

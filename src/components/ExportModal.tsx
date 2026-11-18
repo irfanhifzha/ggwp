@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { downloadWorkspace, serializeWorkspace } from '../storage'
+import { saveTextFile } from '../platform'
+import { exportFileName, serializeWorkspace } from '../storage'
 import type { WorkspaceData } from '../types'
 
 interface ExportModalProps {
@@ -47,10 +48,15 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
 
   if (!isOpen) return null
 
-  const handleDownload = () => {
-    downloadWorkspace(workspace)
-    onNotice?.('Workspace downloaded as JSON.')
-    closeModal()
+  const handleDownload = async () => {
+    try {
+      const result = await saveTextFile(exportFileName(), jsonString)
+      if (result.canceled) return
+      onNotice?.(result.path ? `Workspace saved to ${result.path}` : 'Workspace downloaded as JSON.')
+      closeModal()
+    } catch {
+      onNotice?.('Could not save the workspace file.')
+    }
   }
 
   const handleCopy = async () => {
@@ -180,7 +186,7 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
             <button
               type="button"
               className="toolbar-button"
-              onClick={handleDownload}
+              onClick={() => void handleDownload()}
             >
               Download File
             </button>

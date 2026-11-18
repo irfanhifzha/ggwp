@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { ExportModal } from './components/ExportModal'
 import { ImportModal } from './components/ImportModal'
 import { Workspace } from './components/Workspace'
+import { confirmAction, onBeforeQuit } from './platform'
 import {
   MAX_COLUMNS,
   MIN_COLUMNS,
@@ -25,11 +26,31 @@ function App() {
   const [notice, setNotice] = useState('')
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isExportOpen, setIsExportOpen] = useState(false)
+  const workspaceRef = useRef(workspace)
 
   useEffect(() => {
+    workspaceRef.current = workspace
     const timer = setTimeout(() => saveWorkspace(workspace), 400)
     return () => clearTimeout(timer)
   }, [workspace])
+
+  // Desktop windows can actually exit, so flush the pending debounced save on close
+  // instead of losing the last keystrokes.
+  useEffect(() => {
+    const flush = () => saveWorkspace(workspaceRef.current)
+    const handleUnload = () => flush()
+    window.addEventListener('beforeunload', handleUnload)
+
+    let unsubscribe: (() => void) | undefined
+    void onBeforeQuit(flush).then((unlisten) => {
+      unsubscribe = unlisten
+    })
+
+    return () => {
+      unsubscribe?.()
+      window.removeEventListener('beforeunload', handleUnload)
+    }
+  }, [])
 
   useEffect(() => {
     if (!notice) return
@@ -98,10 +119,11 @@ function App() {
     })
   }, [])
 
-  const clearAll = () => {
-    if (!window.confirm('Delete the entire workspace from this browser? This cannot be undone.')) {
-      return
-    }
+  const clearAll = async () => {
+    const confirmed = await confirmAction(
+      'Delete the entire workspace from this device? This cannot be undone.',
+    )
+    if (!confirmed) return
 
     clearWorkspace()
     setWorkspace({ columns: 2, panels: [] })
