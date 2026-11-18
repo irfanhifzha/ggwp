@@ -98,7 +98,32 @@
 }
 
 .panel-dragging {
-  opacity: 0.5;
+  opacity: 0.45;
+}
+
+.panel-drop-target {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+.columns-control {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.columns-label {
+  margin-right: 4px;
+}
+
+.columns-value {
+  min-width: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-size: 13px;
 }
 
 .panel-head {
@@ -354,9 +379,24 @@
     width: 100%;
   }
 
+  .columns-control {
+    order: 2;
+  }
+
   .app-actions {
     margin-left: 0;
     width: 100%;
+    order: 3;
+  }
+
+  .toolbar-button {
+    flex: 1 1 auto;
+    min-height: 34px;
+  }
+
+  .icon-button {
+    width: 28px;
+    height: 28px;
   }
 
   .workspace {
@@ -369,7 +409,11 @@
   .panel {
     grid-column: span 1 !important;
     grid-row: auto !important;
-    min-height: 65dvh;
-    max-height: 80dvh;
+    min-height: 60dvh;
+    max-height: 85dvh;
+  }
+
+  .panel-head {
+    padding: 5px 4px 5px 2px;
   }
 }

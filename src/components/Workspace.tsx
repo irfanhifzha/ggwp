@@ -14,6 +14,7 @@ interface WorkspaceProps {
 
 export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onAdd }: WorkspaceProps) {
   const [draggingId, setDraggingId] = useState('')
+  const [overId, setOverId] = useState('')
 
   if (workspace.panels.length === 0) {
     return (
@@ -50,10 +51,17 @@ export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onA
           onRemove={onRemove}
           onMove={onMove}
           isDragging={panel.id === draggingId}
+          isDropTarget={Boolean(draggingId) && panel.id === overId && panel.id !== draggingId}
           onDragStart={setDraggingId}
+          onDragEnd={() => {
+            setDraggingId('')
+            setOverId('')
+          }}
+          onDragOverPanel={setOverId}
           onDropOn={(targetId) => {
             if (draggingId && draggingId !== targetId) onReorder(draggingId, targetId)
             setDraggingId('')
+            setOverId('')
           }}
         >
           <PanelContent panel={panel} onPatch={onPatch} />

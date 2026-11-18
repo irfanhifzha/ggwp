@@ -10,8 +10,11 @@ interface PanelShellProps {
   onRemove: (id: string) => void
   onMove: (id: string, direction: -1 | 1) => void
   onDragStart: (id: string) => void
+  onDragEnd: () => void
+  onDragOverPanel: (id: string) => void
   onDropOn: (id: string) => void
   isDragging: boolean
+  isDropTarget: boolean
   children: ReactNode
 }
 
@@ -24,19 +27,26 @@ export function PanelShell({
   onRemove,
   onMove,
   onDragStart,
+  onDragEnd,
+  onDragOverPanel,
   onDropOn,
   isDragging,
+  isDropTarget,
   children,
 }: PanelShellProps) {
   return (
     <article
-      className={`panel${isDragging ? ' panel-dragging' : ''}`}
+      className={`panel${isDragging ? ' panel-dragging' : ''}${
+        isDropTarget ? ' panel-drop-target' : ''
+      }`}
       style={{
         gridColumn: `span ${Math.min(panel.colSpan, columns)}`,
         gridRow: `span ${panel.rowSpan}`,
       }}
       onDragOver={(event) => {
-        if (event.dataTransfer.types.includes('text/plain')) event.preventDefault()
+        if (!event.dataTransfer.types.includes('text/plain')) return
+        event.preventDefault()
+        onDragOverPanel(panel.id)
       }}
       onDrop={(event) => {
         event.preventDefault()
@@ -56,7 +66,7 @@ export function PanelShell({
             event.dataTransfer.setData('text/plain', panel.id)
             onDragStart(panel.id)
           }}
-          onDragEnd={() => onDragStart('')}
+          onDragEnd={onDragEnd}
         >
           ⠿
         </span>

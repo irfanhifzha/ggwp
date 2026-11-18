@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 import { Workspace } from './components/Workspace'
-import { createPanel, loadWorkspace, saveWorkspace } from './storage'
+import {
+  MAX_COLUMNS,
+  MIN_COLUMNS,
+  clampColumns,
+  createPanel,
+  loadWorkspace,
+  saveWorkspace,
+} from './storage'
 import type { Panel, PanelPatch, PanelType, WorkspaceData } from './types'
 
 const ADD_BUTTONS: { type: PanelType; label: string }[] = [
@@ -53,6 +60,19 @@ function App() {
     })
   }, [])
 
+  const setColumns = useCallback((next: number) => {
+    setWorkspace((current) => {
+      const columns = clampColumns(next)
+      return {
+        ...current,
+        columns,
+        panels: current.panels.map((panel) =>
+          panel.colSpan > columns ? ({ ...panel, colSpan: columns } as Panel) : panel,
+        ),
+      }
+    })
+  }, [])
+
   const reorderPanel = useCallback((id: string, targetId: string) => {
     setWorkspace((current) => {
       const from = current.panels.findIndex((panel) => panel.id === id)
@@ -70,6 +90,30 @@ function App() {
     <div className="app">
       <header className="app-bar">
         <h1 className="app-title">GreatGridWorkspace</h1>
+        <div className="columns-control" role="group" aria-label="Grid columns">
+          <span className="columns-label">Columns</span>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Use fewer columns"
+            disabled={workspace.columns <= MIN_COLUMNS}
+            onClick={() => setColumns(workspace.columns - 1)}
+          >
+            −
+          </button>
+          <span className="columns-value" aria-live="polite">
+            {workspace.columns}
+          </span>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Use more columns"
+            disabled={workspace.columns >= MAX_COLUMNS}
+            onClick={() => setColumns(workspace.columns + 1)}
+          >
+            +
+          </button>
+        </div>
         <div className="app-actions">
           {ADD_BUTTONS.map((button) => (
             <button
