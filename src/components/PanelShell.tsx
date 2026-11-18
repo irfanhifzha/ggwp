@@ -57,9 +57,7 @@ export function PanelShell({
         <span
           className="panel-grip"
           draggable
-          role="button"
-          tabIndex={0}
-          aria-label={`Move ${panel.title || panel.type} panel`}
+          aria-hidden="true"
           title="Drag to rearrange"
           onDragStart={(event) => {
             event.dataTransfer.effectAllowed = 'move'

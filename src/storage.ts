@@ -122,6 +122,8 @@ function readPanel(value: unknown, columns: number): Panel | null {
 export function parseWorkspace(value: unknown): WorkspaceData | null {
   if (!isRecord(value)) return null
   if (!Array.isArray(value.panels)) return null
+  // Refuse files from a newer schema rather than silently dropping their data.
+  if (typeof value.version === 'number' && value.version > SCHEMA_VERSION) return null
 
   const columns = clampColumns(Number(value.columns))
   const panels = value.panels

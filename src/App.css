@@ -427,6 +427,12 @@
     order: 2;
   }
 
+  .data-actions {
+    order: 1;
+    padding-left: 0;
+    border-left: 0;
+  }
+
   .app-actions {
     margin-left: 0;
     width: 100%;
@@ -441,6 +447,15 @@
   .icon-button {
     width: 28px;
     height: 28px;
+  }
+
+  .field,
+  .text-editor {
+    font-size: 16px;
+  }
+
+  .panel-grip {
+    display: none;
   }
 
   .workspace {
