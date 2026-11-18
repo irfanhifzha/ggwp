@@ -49,17 +49,14 @@ compact and touch targets are larger.
 Everything stays in this browser. The workspace is stored under the `greatgridworkspace:workspace`
 key in `localStorage` and written on a 400 ms debounce.
 
-**Export** produces a JSON file like this:
+**Export** produces a JSON file named `ggwp-YYYY-MM-DD.json` like this:
 
 ```json
 {
-  "app": "greatgridworkspace",
-  "version": 1,
-  "exportedAt": "2026-11-18T10:00:00.000Z",
   "columns": 2,
   "panels": [
     {
-      "id": "…",
+      "id": "1",
       "type": "text",
       "title": "Notes",
       "text": "…",

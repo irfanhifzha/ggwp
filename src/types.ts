@@ -36,7 +36,7 @@ export type Panel = TextPanel | PdfPanel | BookmarksPanel
 export type PanelPatch = Partial<Panel>
 
 export interface WorkspaceData {
-  version: 1
+  version?: number
   columns: number
   panels: Panel[]
 }

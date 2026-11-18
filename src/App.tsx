@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import './App.css'
+import { ExportModal } from './components/ExportModal'
+import { ImportModal } from './components/ImportModal'
 import { Workspace } from './components/Workspace'
 import {
   MAX_COLUMNS,
@@ -7,9 +9,7 @@ import {
   clampColumns,
   clearWorkspace,
   createPanel,
-  downloadWorkspace,
   loadWorkspace,
-  parseWorkspace,
   saveWorkspace,
 } from './storage'
 import type { Panel, PanelPatch, PanelType, WorkspaceData } from './types'
@@ -23,7 +23,8 @@ const ADD_BUTTONS: { type: PanelType; label: string }[] = [
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceData>(loadWorkspace)
   const [notice, setNotice] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isImportOpen, setIsImportOpen] = useState(false)
+  const [isExportOpen, setIsExportOpen] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => saveWorkspace(workspace), 400)
@@ -97,28 +98,13 @@ function App() {
     })
   }, [])
 
-  const importFile = async (file: File) => {
-    try {
-      const parsed = parseWorkspace(JSON.parse(await file.text()))
-      if (!parsed) {
-        setNotice('That file is not a valid workspace export.')
-        return
-      }
-
-      setWorkspace(parsed)
-      setNotice(`Imported ${parsed.panels.length} panel(s).`)
-    } catch {
-      setNotice('Could not read that file as JSON.')
-    }
-  }
-
   const clearAll = () => {
     if (!window.confirm('Delete the entire workspace from this browser? This cannot be undone.')) {
       return
     }
 
     clearWorkspace()
-    setWorkspace({ version: 1, columns: 2, panels: [] })
+    setWorkspace({ columns: 2, panels: [] })
     setNotice('Workspace cleared.')
   }
 
@@ -167,33 +153,20 @@ function App() {
           <button
             type="button"
             className="text-button"
-            onClick={() => downloadWorkspace(workspace)}
+            onClick={() => setIsExportOpen(true)}
           >
             Export
           </button>
           <button
             type="button"
             className="text-button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setIsImportOpen(true)}
           >
             Import
           </button>
           <button type="button" className="text-button text-button-danger" onClick={clearAll}>
             Clear all
           </button>
-          <input
-            ref={fileInputRef}
-            className="visually-hidden"
-            type="file"
-            accept="application/json,.json"
-            tabIndex={-1}
-            aria-hidden="true"
-            onChange={(event) => {
-              const file = event.target.files?.[0]
-              if (file) void importFile(file)
-              event.target.value = ''
-            }}
-          />
         </div>
 
         {notice && (
@@ -213,6 +186,22 @@ function App() {
           onAdd={addPanel}
         />
       </main>
+
+      <ExportModal
+        isOpen={isExportOpen}
+        workspace={workspace}
+        onClose={() => setIsExportOpen(false)}
+        onNotice={(msg) => setNotice(msg)}
+      />
+
+      <ImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onImport={(imported) => {
+          setWorkspace(imported)
+          setNotice(`Imported ${imported.panels.length} panel(s).`)
+        }}
+      />
     </div>
   )
 }

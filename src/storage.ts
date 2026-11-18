@@ -9,7 +9,7 @@ export const MAX_ROW_SPAN = 4
 export const MAX_PANELS = 60
 
 export function createId(): string {
-  return crypto.randomUUID()
+  return Math.random().toString(36).slice(2, 8)
 }
 
 export function clampColumns(value: number): number {
@@ -56,7 +56,6 @@ export function createTextPanel(text: string, colSpan = 1): Panel {
 
 export function defaultWorkspace(): WorkspaceData {
   return {
-    version: SCHEMA_VERSION,
     columns: 2,
     panels: [
       createTextPanel('', 1),
@@ -82,10 +81,16 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+function readId(value: unknown): string {
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  if (typeof value === 'number') return String(value)
+  return createId()
+}
+
 function readBookmarks(value: unknown): Bookmark[] {
   if (!Array.isArray(value)) return []
   return value.filter(isRecord).map((item) => ({
-    id: readString(item.id) || createId(),
+    id: readId(item.id),
     title: readString(item.title),
     url: readString(item.url),
     note: readString(item.note),
@@ -99,7 +104,7 @@ function readPanel(value: unknown, columns: number): Panel | null {
   if (type !== 'text' && type !== 'pdf' && type !== 'bookmarks') return null
 
   const base = {
-    id: readString(value.id) || createId(),
+    id: readId(value.id),
     title: readString(value.title, TITLES[type]).slice(0, 200),
     colSpan: clampSpan(Number(value.colSpan), columns),
     rowSpan: clampSpan(Number(value.rowSpan), MAX_ROW_SPAN),
@@ -120,18 +125,51 @@ function readPanel(value: unknown, columns: number): Panel | null {
  * workspace, or null when the shape is not a workspace at all.
  */
 export function parseWorkspace(value: unknown): WorkspaceData | null {
+  if (Array.isArray(value)) {
+    value = { columns: 2, panels: value }
+  }
   if (!isRecord(value)) return null
   if (!Array.isArray(value.panels)) return null
   // Refuse files from a newer schema rather than silently dropping their data.
   if (typeof value.version === 'number' && value.version > SCHEMA_VERSION) return null
 
-  const columns = clampColumns(Number(value.columns))
+  const columns = clampColumns(Number(value.columns ?? 2))
   const panels = value.panels
     .slice(0, MAX_PANELS)
     .map((panel) => readPanel(panel, columns))
     .filter((panel): panel is Panel => panel !== null)
 
-  return { version: SCHEMA_VERSION, columns, panels }
+  return { columns, panels }
+}
+
+/**
+ * Parses raw JSON string (supporting optional markdown code blocks or raw panel arrays)
+ * into a valid workspace or returns an error message.
+ */
+export function parseWorkspaceText(text: string): { data: WorkspaceData | null; error?: string } {
+  const trimmed = text.trim()
+  if (!trimmed) {
+    return { data: null, error: 'Please enter JSON text.' }
+  }
+
+  let cleaned = trimmed
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
+  }
+
+  let json: unknown
+  try {
+    json = JSON.parse(cleaned)
+  } catch {
+    return { data: null, error: 'Could not read that text as JSON.' }
+  }
+
+  const workspace = parseWorkspace(json)
+  if (!workspace) {
+    return { data: null, error: 'That data is not a valid workspace export.' }
+  }
+
+  return { data: workspace }
 }
 
 export function loadWorkspace(): WorkspaceData {
@@ -161,15 +199,25 @@ export function clearWorkspace(): void {
   }
 }
 
-/** Builds the portable, versioned JSON payload used for export. */
+/** Builds the clean, portable JSON payload used for export. */
 export function serializeWorkspace(workspace: WorkspaceData): string {
   return JSON.stringify(
     {
-      app: 'greatgridworkspace',
-      version: SCHEMA_VERSION,
-      exportedAt: new Date().toISOString(),
       columns: workspace.columns,
-      panels: workspace.panels,
+      panels: workspace.panels.map((panel, index) => {
+        const id = String(index + 1)
+        if (panel.type === 'bookmarks') {
+          return {
+            ...panel,
+            id,
+            bookmarks: panel.bookmarks.map((bm, bmIndex) => ({
+              ...bm,
+              id: String(bmIndex + 1),
+            })),
+          }
+        }
+        return { ...panel, id }
+      }),
     },
     null,
     2,
@@ -181,7 +229,7 @@ export function downloadWorkspace(workspace: WorkspaceData): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `greatgridworkspace-${new Date().toISOString().slice(0, 10)}.json`
+  link.download = `ggwp-${new Date().toISOString().slice(0, 10)}.json`
   link.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
