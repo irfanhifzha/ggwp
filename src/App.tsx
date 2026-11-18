@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { Workspace } from './components/Workspace'
 import {
   MAX_COLUMNS,
   MIN_COLUMNS,
   clampColumns,
+  clearWorkspace,
   createPanel,
+  downloadWorkspace,
   loadWorkspace,
+  parseWorkspace,
   saveWorkspace,
 } from './storage'
 import type { Panel, PanelPatch, PanelType, WorkspaceData } from './types'
@@ -19,11 +22,19 @@ const ADD_BUTTONS: { type: PanelType; label: string }[] = [
 
 function App() {
   const [workspace, setWorkspace] = useState<WorkspaceData>(loadWorkspace)
+  const [notice, setNotice] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => saveWorkspace(workspace), 400)
     return () => clearTimeout(timer)
   }, [workspace])
+
+  useEffect(() => {
+    if (!notice) return
+    const timer = setTimeout(() => setNotice(''), 4000)
+    return () => clearTimeout(timer)
+  }, [notice])
 
   const addPanel = useCallback((type: PanelType) => {
     setWorkspace((current) => ({
@@ -86,6 +97,31 @@ function App() {
     })
   }, [])
 
+  const importFile = async (file: File) => {
+    try {
+      const parsed = parseWorkspace(JSON.parse(await file.text()))
+      if (!parsed) {
+        setNotice('That file is not a valid workspace export.')
+        return
+      }
+
+      setWorkspace(parsed)
+      setNotice(`Imported ${parsed.panels.length} panel(s).`)
+    } catch {
+      setNotice('Could not read that file as JSON.')
+    }
+  }
+
+  const clearAll = () => {
+    if (!window.confirm('Delete the entire workspace from this browser? This cannot be undone.')) {
+      return
+    }
+
+    clearWorkspace()
+    setWorkspace({ version: 1, columns: 2, panels: [] })
+    setNotice('Workspace cleared.')
+  }
+
   return (
     <div className="app">
       <header className="app-bar">
@@ -126,6 +162,45 @@ function App() {
             </button>
           ))}
         </div>
+
+        <div className="data-actions">
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => downloadWorkspace(workspace)}
+          >
+            Export
+          </button>
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            Import
+          </button>
+          <button type="button" className="text-button text-button-danger" onClick={clearAll}>
+            Clear all
+          </button>
+          <input
+            ref={fileInputRef}
+            className="visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            tabIndex={-1}
+            aria-hidden="true"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void importFile(file)
+              event.target.value = ''
+            }}
+          />
+        </div>
+
+        {notice && (
+          <p className="app-notice" role="status">
+            {notice}
+          </p>
+        )}
       </header>
 
       <main className="app-main">

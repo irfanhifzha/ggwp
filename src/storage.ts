@@ -150,3 +150,36 @@ export function saveWorkspace(workspace: WorkspaceData): boolean {
     return false
   }
 }
+
+export function clearWorkspace(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // Storage can be unavailable (private mode); nothing else to clean up.
+  }
+}
+
+/** Builds the portable, versioned JSON payload used for export. */
+export function serializeWorkspace(workspace: WorkspaceData): string {
+  return JSON.stringify(
+    {
+      app: 'greatgridworkspace',
+      version: SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      columns: workspace.columns,
+      panels: workspace.panels,
+    },
+    null,
+    2,
+  )
+}
+
+export function downloadWorkspace(workspace: WorkspaceData): void {
+  const blob = new Blob([serializeWorkspace(workspace)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `greatgridworkspace-${new Date().toISOString().slice(0, 10)}.json`
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
