@@ -132,6 +132,7 @@ jobs:
         run: |
           export NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
           npx tauri android init --ci
+          npm run icon
           npx tauri android build --apk
 
       - name: Rename APK

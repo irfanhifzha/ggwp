@@ -10,7 +10,7 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 8px 14px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
@@ -611,7 +611,7 @@
 
 @media (max-width: 720px) {
   .app-bar {
-    padding: 8px 10px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 10px 8px;
     gap: 8px;
   }
 
@@ -655,21 +655,23 @@
   }
 
   .workspace {
-    grid-template-columns: 1fr !important;
-    grid-auto-rows: auto;
+    grid-auto-rows: minmax(180px, auto);
     gap: 8px;
     padding: 8px;
   }
 
   .panel {
-    grid-column: span 1 !important;
-    grid-row: auto !important;
-    min-height: 60dvh;
-    max-height: 85dvh;
+    min-height: 200px;
   }
 
   .panel-head {
     padding: 5px 4px 5px 2px;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .panel-actions {
+    flex-wrap: wrap;
   }
 
   .modal-card {
