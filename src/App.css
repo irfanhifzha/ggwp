@@ -651,7 +651,8 @@
   }
 
   .panel-grip {
-    display: none;
+    padding: 0 4px;
+    font-size: 14px;
   }
 
   .workspace {
