@@ -11,6 +11,9 @@
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
+    "android:dev": "tauri android dev",
+    "android:build": "tauri android build --apk",
+    "android:build:debug": "tauri android build --apk --debug",
     "icon": "node scripts/make-icon.mjs && tauri icon src-tauri/icons/source.png"
   },
   "dependencies": {
