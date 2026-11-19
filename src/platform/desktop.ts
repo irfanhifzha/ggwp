@@ -29,7 +29,7 @@ export const desktopPlatform: PlatformApi = {
     }
   },
 
-  async confirmAction(message, title = 'GreatGridWorkspace') {
+  async confirmAction(message, title = 'ggwp') {
     return confirm(message, { title, kind: 'warning' })
   },
 

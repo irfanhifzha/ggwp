@@ -211,7 +211,7 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
           ) : (
             <div className="import-paste-pane">
               <label htmlFor="import-paste-input" className="panel-hint">
-                Paste workspace JSON exported from GreatGridWorkspace:
+                Paste workspace JSON exported from ggwp:
               </label>
               <textarea
                 id="import-paste-input"
