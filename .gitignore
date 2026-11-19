@@ -27,3 +27,5 @@ key.properties
 *.njsproj
 *.sln
 *.sw?
+.kotlin/
+.tauri/
