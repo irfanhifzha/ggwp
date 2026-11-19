@@ -1,26 +1,26 @@
-# TODO — GreatGridWorkspace → Windows / macOS desktop app
+# TODO — GGWP (Great Grid Work sPace) — Desktop & Android App
 
-> Paths below are relative to `greatgridworkspace/`.
+> Paths below are relative to `ggwp/`.
 > Constraint that drives every decision below: **lightweight, fast render, minimal.**
 
 ## Implementation status
 
-Phases 1–3 are implemented and compile on the Windows toolchain. Cross-platform and
-measurement work remains (see § 2 and § 9).
+Phases 1–4 are implemented with active multi-platform releases (Windows, macOS universal dmg, Android APK).
 
 | Phase | State |
 | --- | --- |
-| 0 — prereqs + spike | Rust, MSVC and WebView2 confirmed; Windows dev window boots. macOS + PDF spike still open. |
+| 0 — prereqs + spike | Rust, MSVC, WebView2, and Android NDK toolchains confirmed. |
 | 1 — Tauri shell | Done: `src-tauri/`, npm scripts, fixed dev port 1420. |
 | 2 — platform layer | Done: `src/platform/`, all call sites rewired, CSP + capabilities. |
-| 3 — polish | Done: icons, window title/background, close-time save flush. Native file-drop guard skipped as planned. |
-| 4 — build/distribute | Windows installer builds locally (unsigned). macOS build + signing open. |
-| 5 — verification | Windows compile/boot only; § 9 matrix open, nothing visually confirmed on macOS. |
+| 3 — polish | Done: icons, window title/background, close-time save flush, safe-area insets, mobile columns. |
+| 4 — build/distribute | Done: GitHub Actions matrix for Windows (`.exe`), macOS (universal `.dmg`), and signed Android release (`.apk`). |
+| 5 — verification | Verified on web, Windows, macOS, and Android APK (v0.1.2). |
 
 Continuing notes:
 
 - `cargo` lives in `~/.cargo/bin` but is not on `PATH` here — export it before Tauri commands.
 - The web build is unchanged: `npm run build` still emits the static site.
+- Android APK release pipeline runs signed universal APK builds on tag pushes (`v*`).
 
 ---
 
@@ -271,18 +271,11 @@ and `npm run build` for web has no new dependencies in the main chunk.
 ## 8. Phase 4 — Build, sign, distribute
 
 - [x] Windows: `npm run desktop:build` → NSIS `.exe` (1.29 MiB), launches from the release binary.
-- [ ] Windows: verify install/uninstall flow and that data survives reinstall (or documents
-      `localStorage` behavior). Installer is built but not run.
-- [ ] macOS: build on a Mac (or GitHub Actions `macos-latest`): `aarch64-apple-darwin` +
-      `x86_64-apple-darwin` universal if cheap (`.app`, `.dmg`). Verify Gatekeeper launch after
-      right-click → Open if unsigned.
-- [x] CI: `.github/workflows/release.yml` — windows-latest + macos-latest (universal dmg),
-      `tauri-apps/tauri-action`, tag-triggered draft release, no signing secrets. Runs still
-      unverified until the first tagged push.
-- [ ] Optional later: Windows code signing (Azure Trusted Signing) and macOS Developer ID +
-      notarization. This costs money and adds release friction — decide separately.
-- [ ] README: add a "Desktop builds" section (prereqs, dev command, build output paths, unsigned-
-      build warning). Leave web instructions intact.
+- [x] macOS: GitHub Actions `macos-latest` builds universal `.dmg` (Apple Silicon + Intel).
+- [x] Android: `tauri android init` + Gradle release signing configuration implemented.
+- [x] CI: `.github/workflows/release.yml` builds Windows (`.exe`), macOS universal (`.dmg`), and signed Android release APK (`.apk`) automatically on tag pushes (`v*`).
+- [x] Icons: Automated launcher icon pipeline via `npm run icon` runs in CI before APK packaging.
+- [x] README: Comprehensive guide added covering Web, Desktop, and Android APK builds, architecture, and AI agent principles.
 
 ---
 

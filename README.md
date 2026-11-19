@@ -1,146 +1,136 @@
-# GreatGridWorkspace
+# GGWP - Great Grid Work sPace
 
-A minimalist, local-first grid workspace for reading, writing and organizing information in one
-place. Notes, PDFs and bookmarks live side by side in resizable panels, and everything is stored in
-your browser — no account, no backend.
+A minimalist, local-first grid workspace for reading, writing, and organizing information in one place. Notes, PDFs, and bookmarks live side by side in resizable panels, and everything is stored locally on your device — no accounts, no tracking, no backend required.
+
+Shipped as:
+- **Web App**: [ggwplab.pages.dev](https://ggwplab.pages.dev) (runs in any modern browser)
+- **Desktop App**: Lightweight Windows (`.exe` NSIS installer) and macOS (universal `.dmg`) via Tauri 2
+- **Android App**: Standalone signed APK (`.apk`) via Tauri 2 Mobile
+
+---
 
 ## Features
 
-- **Flexible grid** — 1–6 columns; each panel spans one or more columns and rows.
-- **Panel types**
-  - **Text** — distraction-free plain-text note with automatic saving.
-  - **PDF** — reads a PDF from a URL using the browser's built-in viewer.
-  - **Bookmarks** — save links with an optional title and note; edit or delete them inline.
-- **Layout control** — add, remove, resize, and reorder panels (drag the grip or use the arrows).
-- **Autosave** — the workspace and all content are saved to `localStorage` shortly after each change.
-- **Export / import** — download a versioned JSON snapshot and restore it later, with validation.
-- **Clear all data** — wipes the saved workspace after confirmation.
-- **Responsive** — the grid collapses to a single scrollable column on narrow screens.
-- **Light / dark** — follows the operating system color scheme.
+- **Dynamic CSS Grid** — Configurable columns (1–4); each panel can span multiple columns (`colSpan`) and rows (`rowSpan`).
+- **Mobile Responsive** — Full multi-column control (`+` / `−`) and panel resizing even on phones and foldables, with notch and status-bar safe-area support.
+- **Panel Types**
+  - **Text** — Distraction-free plain-text note editor with automatic debounced saving.
+  - **PDF** — Displays PDF documents from URLs using the system/browser native viewer without heavy PDF.js bundle bloat.
+  - **Bookmarks** — Save links with custom titles and notes; edit or delete inline.
+- **Layout Management** — Add, remove, resize, and reorder panels (touch/mouse drag grip `⠿` or header arrow buttons `←` / `→`).
+- **Autosave** — Changes commit to local storage automatically shortly after editing.
+- **JSON Export / Import** — Backup and restore your workspace snapshots across devices with automatic schema sanitization.
+- **Lightweight & Fast** — ~78 KB gzipped JavaScript bundle; zero heavy UI frameworks or Electron bloat.
+- **Light / Dark Theme** — Automatically follows system preferences.
 
-## Getting started
+---
+
+## User Guide
+
+### Using the Workspace
+
+| Action | Control / Shortcut | Description |
+| :--- | :--- | :--- |
+| **Add Panel** | **+ Text**, **+ PDF**, **+ Bookmarks** | Located in the top header action bar. |
+| **Rename Panel** | Panel Title input | Click or tap directly on the panel title to edit. |
+| **Adjust Columns** | **Columns − / +** | Changes the grid column count (1 to 4). Panels adjust automatically. |
+| **Resize Panel** | **◄ ►** (width) / **▲ ▼** (height) | Expands or shrinks the column span and row span of the panel. |
+| **Reorder Panels** | **⠿** grip or **← →** | Drag the grip handle, or use arrow buttons in the panel header. |
+| **Read a PDF** | URL field + **Load** | Paste an `http(s)` PDF link and press Enter or Load. |
+| **Save Bookmark** | URL + Title/Note + **Add** | Save web links directly into bookmark panels. |
+| **Delete Panel** | **✕** | Permanently removes the panel from the grid. |
+| **Export Snapshot** | **Export** | Downloads a versioned JSON snapshot (`ggwp-YYYY-MM-DD.json`). |
+| **Import Snapshot** | **Import** | Uploads or pastes a JSON snapshot to restore panels. |
+| **Clear Workspace** | **Clear All** | Resets the workspace after explicit confirmation. |
+
+### Mobile & Touch Usage
+- **Portrait & Landscape**: The grid supports 1 to 4 columns on phones. Use **Columns − / +** to toggle between a 1-column reading feed and a 2-column side-by-side comparison view.
+- **Notch & Status Bar**: Safe-area insets (`env(safe-area-inset-top)`) automatically prevent content from colliding with camera punch-holes or system status bars.
+- **Touch Reordering**: In portrait mode, use the **`←`** and **`→`** buttons in each panel header to reorder, or rotate to landscape to use touch drag-and-drop.
+
+---
+
+## Development & Build Instructions
+
+### Prerequisites
+- **Node.js** (v20+ recommended) and **npm**
+- **Rust** (stable toolchain) — required for Desktop and Android builds
+- **Platform Tools**:
+  - *Windows*: Visual Studio C++ Build Tools + WebView2
+  - *macOS*: Xcode Command Line Tools
+  - *Android*: Android Studio / SDK (`cmdline-tools`, `platforms;android-34`, NDK `27.2.12479018`)
+
+### Commands
 
 ```bash
+# Install dependencies
 npm install
-npm run dev      # start the dev server
-npm run build    # type-check and build to dist/
-npm run preview  # serve the production build
-npm run lint     # oxlint
+
+# Web Development
+npm run dev              # Start Vite dev server at http://localhost:1420
+npm run build            # Type-check (tsc) and compile production web bundle to dist/
+npm run preview          # Preview local production build
+npm run lint             # Fast linting via oxlint
+
+# Desktop App (Tauri 2)
+npm run desktop:dev      # Launch native desktop app against local dev server
+npm run desktop:build    # Build release desktop installer (NSIS .exe or macOS .dmg)
+
+# Android App (Tauri Mobile)
+npm run android:dev      # Run on connected Android device or emulator
+npm run android:build    # Build production release APK
+npm run android:build:debug # Build debug APK
+
+# Icon Generation
+npm run icon             # Generate all desktop and Android mipmap launcher icons
 ```
 
-## Desktop app (Windows / macOS)
+---
 
-The same codebase ships as a native window via [Tauri 2](https://v2.tauri.app/): the system
-webview renders the existing React app, so the installer stays a few megabytes instead of
-bundling a browser engine. `src/platform/` is the only place that knows about the shell — the
-web build falls back to the plain browser APIs.
+## AI Agent & Contributor Guide
 
-**One-time prereqs:** [Rust](https://rustup.rs/) plus the platform build tools (MSVC C++ build
-tools on Windows; Xcode command line tools on macOS). WebView2 ships with Windows 10/11.
+When writing code or assisting with features in this repository, follow these design principles and architectural conventions:
 
-```bash
-npm run desktop:dev     # run the desktop window against the Vite dev server
-npm run desktop:build   # installer in src-tauri/target/release/bundle/
-npm run icon            # regenerate all icon sizes from scripts/make-icon.mjs
-```
+### 1. Architecture Overview
+- **Frontend Core**: React 19 + TypeScript + Vite 8.
+- **Desktop/Mobile Shell**: [Tauri 2](https://v2.tauri.app/) (Rust backend shell).
+- **Platform Abstraction Layer (`src/platform/`)**:
+  - Code outside `src/platform/` **must not** directly import `@tauri-apps/*` packages.
+  - All native operations (`openExternal`, `saveTextFile`, `openTextFile`, `confirmAction`, `onBeforeQuit`) go through [src/platform/index.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/index.ts).
+  - Web builds dynamically import [browser.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/browser.ts), ensuring the web client never downloads Tauri native bridge code (~0 KB overhead).
+  - Desktop and mobile runtimes dynamically load [desktop.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/desktop.ts).
 
-Desktop bundles are unsigned in this repo: expect a SmartScreen prompt on Windows and a
-right-click → Open on macOS.
+### 2. Strict Lightweight & Performance Guardrails
+- **No Heavy External Dependencies**: Do **not** add bloated dependencies (no PDF.js, no drag-and-drop libraries, no heavy UI suites, no Electron).
+- **Pure CSS Grid**: Layout is governed by native CSS Grid (`grid-template-columns`, `gridColumn`, `gridRow`). Do not switch to absolute positioning, coordinate math, or canvas-based layout engines.
+- **Local Edit State**: Text editors and panel forms maintain internal draft state and commit to the top-level workspace state on a debounce (~300–400 ms). Never trigger a full workspace re-render on every keystroke.
+- **Lazy Native Elements**: Iframes and embedded viewers must retain `loading="lazy"`.
 
-## Using the workspace
+### 3. Mobile & Responsive Design Rules
+- Keep `<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />` in [index.html](file:///Users/asdf/Downloads/newprojectweb/ggwp/index.html).
+- Always respect `env(safe-area-inset-top)` on `.app-bar` so Android/iOS cutouts do not overlap UI controls.
+- Do not reintroduce `grid-template-columns: 1fr !important` on `.workspace`; user-configured columns must remain functional across all screen widths.
+- Ensure panel headers wrap (`flex-wrap: wrap`) so action buttons never overflow on narrow 2-column mobile viewports.
 
-| Action | How |
-| --- | --- |
-| Add a panel | Use **+ Text**, **+ PDF**, **+ Bookmarks** in the header. |
-| Rename a panel | Edit the title directly in its header. |
-| Resize | **◄ ►** change column span, **▲ ▼** change row span. |
-| Reorder | Drag the **⠿** grip, or use **← →**. |
-| Change columns | **Columns − / +** in the header (spans are clamped to fit). |
-| Read a PDF | Paste a URL and press **Load**, or Enter. |
-| Save a bookmark | Fill in the URL (title and note optional) and press **Add**. |
-| Remove a panel | **✕** in the panel header. |
+### 4. Icon Generation & Assets
+- Source icon generator is in [scripts/make-icon.mjs](file:///Users/asdf/Downloads/newprojectweb/ggwp/scripts/make-icon.mjs) (pure Node.js + zlib, zero npm dependencies).
+- Running `npm run icon` runs `make-icon.mjs` and invokes `tauri icon src-tauri/icons/source.png`, which updates:
+  - Desktop icons in [src-tauri/icons/](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/icons/)
+  - Android mipmaps in [src-tauri/gen/android/app/src/main/res/](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/gen/android/app/src/main/res/)
+- CI workflow in [.github/workflows/release.yml](file:///Users/asdf/Downloads/newprojectweb/ggwp/.github/workflows/release.yml) automatically runs `npm run icon` during APK builds.
 
-On mobile the panels stack vertically and each one fills most of the viewport; the header stays
-compact and touch targets are larger.
+### 5. Versioning
+- The version string must remain synchronized across:
+  - [src-tauri/tauri.conf.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/tauri.conf.json) (`version`)
+  - [src-tauri/Cargo.toml](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/Cargo.toml) (`version`)
+  - [package.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/package.json) (`version`)
 
-## Data and privacy
+---
 
-Everything stays in this browser. The workspace is stored under the `greatgridworkspace:workspace`
-key in `localStorage` and written on a 400 ms debounce.
+## Data & Privacy
 
-**Export** produces a JSON file named `ggwp-YYYY-MM-DD.json` like this:
-
-```json
-{
-  "columns": 2,
-  "panels": [
-    {
-      "id": "1",
-      "type": "text",
-      "title": "Notes",
-      "text": "…",
-      "colSpan": 1,
-      "rowSpan": 1
-    }
-  ]
-}
-```
-
-**Import** accepts any file matching that shape. Data is sanitized first: unknown panel types are
-dropped, spans are clamped, non-http(s) URLs are ignored, and missing fields fall back to defaults.
-An invalid file shows a notice instead of replacing the workspace. Import replaces the current
-workspace — export first if you want to keep it.
-
-**Clear all** removes the stored workspace and empties the grid; it cannot be undone.
-
-## Project structure
-
-```
-src/
-  App.tsx                 workspace state, autosave, import/export actions
-  types.ts                workspace and panel data model
-  storage.ts              localStorage, validation, JSON export
-  url.ts                  http(s) URL normalization
-  components/
-    Workspace.tsx         CSS Grid shell, drag state, empty state
-    PanelShell.tsx        shared panel header, spans, reorder, remove
-    PanelContent.tsx      switches on panel type
-    TextPanel.tsx         debounced plain-text editor
-    PdfPanel.tsx          URL field + native PDF iframe
-    BookmarkPanel.tsx     add / edit / delete bookmark list
-  index.css               design tokens and base styles
-  App.css                 layout, panels and content styles
-```
-
-The data model is a single `WorkspaceData` object (`columns` + ordered `panels`). Panels are rendered
-in array order, so "reorder" simply means moving an entry. Panel content is edited locally inside
-each panel component and committed upward on a short debounce, which keeps the grid from
-re-rendering on every keystroke. Adding a panel type means adding a variant to the `Panel` union and
-one case in `PanelContent`.
-
-## Design decisions
-
-These answer the open questions in `PLAN.md` with the simplest maintainable option:
-
-1. **Grid** — plain CSS Grid with an ordered panel list and column/row spans. No layout library.
-2. **Resizing** — predefined spans rather than free pixel positioning: predictable, keyboard
-   accessible, and trivially serializable. "Merging" is a wider/taller span, not merged content.
-3. **Mobile** — one shared layout, forced to a single column below 720 px. No separate config.
-4. **Editor** — plain text in a textarea, debounced autosave, no toolbar.
-5. **PDF** — the browser's native viewer in an iframe, so no PDF.js dependency or bundle weight.
-6. **Storage** — `localStorage` with a schema version. Fine for notes and URLs; migrate to IndexedDB
-   only if large attachments are ever supported (PDFs are referenced by URL, not stored).
-7. **State** — React state in `App` passed as props. No store; the app is a single tree.
-8. **Import/export** — versioned JSON, sanitized on import, no merge mode.
-9. **Performance** — no dependencies beyond React, local edit state per panel, and lazy `loading`
-   on iframes. The production bundle is ~76 kB gzipped.
-10. **Structure** — workspace manager / panel shell / panel content / storage, as suggested.
-
-## Known limitations
-
-- The native PDF viewer can't display documents from sites that forbid embedding; the panel offers
-  an "open in a new tab" fallback.
-- Local PDF files are not supported — only URLs.
-- `localStorage` is per-browser and per-device; use export/import to move a workspace.
-- In the desktop build, PDF viewing still relies on the system webview (WebView2 renders PDFs; on macOS the panel falls back to opening the document in your browser).
-- Drag reordering uses a mouse; on touch devices use the arrow buttons.
+All notes and links remain on the client machine:
+- Data is stored under the `greatgridworkspace:workspace` key in `localStorage`.
+- No remote analytics, telemetries, or accounts.
+- **Export**: Produces a clean, human-readable JSON snapshot.
+- **Import**: Validates and sanitizes data shape; unknown panel types and invalid links are automatically stripped to protect the user's workspace.
