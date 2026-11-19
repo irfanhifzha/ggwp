@@ -66,13 +66,84 @@ jobs:
           tagName: v__VERSION__
           releaseName: 'ggwp v__VERSION__'
           releaseBody: |
-            Desktop builds for Windows and macOS.
+            Desktop and Android builds.
 
             - Windows: NSIS installer (`.exe`)
             - macOS: universal `.dmg` (Apple Silicon + Intel)
+            - Android: universal debug APK (`.apk`) — sideload-ready, all ABIs
 
-            These builds are unsigned. Windows shows a SmartScreen prompt; on macOS,
+            Desktop builds are unsigned. Windows shows a SmartScreen prompt; on macOS,
             right-click the app → Open the first time.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches app version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version="v$(node -p 'require("./src-tauri/tauri.conf.json").version')"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match app version $version in src-tauri/tauri.conf.json"
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Android NDK
+        run: |
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.2.12479018"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build Android APK
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.2.12479018
+        run: |
+          npx tauri android init --ci
+          npx tauri android build --apk --debug
+
+      - name: Rename APK
+        run: |
+          version=$(node -p 'require("./src-tauri/tauri.conf.json").version')
+          mv src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk \
+             ggwp-${version}-android-universal-debug.apk
+
+      - name: Upload APK to release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          fail_on_unmatched_files: true
+          files: ggwp-*-android-universal-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload APK as artifact (non-tag runs)
+        uses: actions/upload-artifact@v4
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        with:
+          name: android-apk
+          path: ggwp-*-android-universal-debug.apk
+          retention-days: 7
