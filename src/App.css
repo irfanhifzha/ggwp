@@ -73,6 +73,56 @@
   color: var(--danger) !important;
 }
 
+.cloud-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cloud-label {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cloud-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.cloud-dot-saved {
+  background: var(--accent);
+}
+
+.cloud-dot-loading,
+.cloud-dot-saving {
+  background: var(--accent);
+  opacity: 0.45;
+}
+
+.cloud-dot-error {
+  background: var(--danger);
+}
+
+.cloud-control .text-button {
+  padding: 2px 6px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--text);
+}
+
+.cloud-control .text-button:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: transparent;
+}
+
 .app-notice {
   flex-basis: 100%;
   color: var(--muted);
@@ -670,6 +720,23 @@
   justify-content: space-between;
 }
 
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.auth-submit {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
 .modal-foot {
   display: flex;
   align-items: center;
@@ -698,6 +765,15 @@
     order: 1;
     padding-left: 0;
     border-left: 0;
+  }
+
+  .cloud-control {
+    order: 4;
+    width: 100%;
+  }
+
+  .cloud-label {
+    max-width: none;
   }
 
   .app-actions {

@@ -127,10 +127,25 @@ When writing code or assisting with features in this repository, follow these de
 
 ---
 
-## Data & Privacy
+## Data, Cloud & Privacy
 
-All notes and links remain on the client machine:
-- Data is stored under the `greatgridworkspace:workspace` key in `localStorage`.
-- No remote analytics, telemetries, or accounts.
+- Data is always cached under the `greatgridworkspace:workspace` key in `localStorage`.
+- When `public/firebase-config.json` exists, the workspace also loads from and saves to a single
+  Firestore document, `workspaces/main`. Without that file the app stays fully local.
+- The Firestore rules allow public reads and require a signed-in account for writes. Use **Sign in**
+  in the header (email + password) to save changes to the cloud. Accounts are created in the
+  Firebase console.
+- No analytics or telemetry. Saving is last-write-wins; there is no live sync between tabs or users.
 - **Export**: Produces a clean, human-readable JSON snapshot.
 - **Import**: Validates and sanitizes data shape; unknown panel types and invalid links are automatically stripped to protect the user's workspace.
+
+### Cloud setup
+
+```bash
+npx firebase login
+npx firebase apps:sdkconfig web <APP_ID> --out public/firebase-config.json
+npx firebase deploy --only firestore:rules
+```
+
+The web config is gitignored. Enable the **Email/Password** provider under Firebase Authentication,
+and make sure a Firestore database exists for the project.
