@@ -1,21 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  cloudErrorMessage,
+  listCloudVersions,
+  loadCloudVersion,
+  type CloudVersion,
+} from '../cloud'
 import { openTextFile } from '../platform'
 import { parseWorkspaceText } from '../storage'
 import type { WorkspaceData } from '../types'
 
 interface ImportModalProps {
   isOpen: boolean
+  cloudEnabled: boolean
   onClose: () => void
   onImport: (workspace: WorkspaceData) => void
 }
 
-type Tab = 'file' | 'paste'
+type Tab = 'file' | 'paste' | 'cloud'
 
-export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
+function formatSavedAt(value: string): string {
+  if (!value) return 'Unknown date'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+}
+
+export function ImportModal({ isOpen, cloudEnabled, onClose, onImport }: ImportModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('file')
   const [pasteText, setPasteText] = useState('')
   const [error, setError] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
+  const [versions, setVersions] = useState<CloudVersion[] | null>(null)
+  const [loadingVersions, setLoadingVersions] = useState(false)
+  const [loadingVersionId, setLoadingVersionId] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const closeModal = useCallback(() => {
@@ -41,6 +57,28 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, closeModal])
+
+  // Fetch the cloud version list whenever the cloud tab is shown.
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'cloud' || !cloudEnabled) return
+
+    let cancelled = false
+
+    void listCloudVersions()
+      .then((list) => {
+        if (!cancelled) setVersions(list)
+      })
+      .catch((caught) => {
+        if (!cancelled) setError(cloudErrorMessage(caught))
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingVersions(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, activeTab, cloudEnabled])
 
   // Allow paste event anywhere on modal to switch to paste tab
   useEffect(() => {
@@ -98,6 +136,25 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
 
   const handleImportText = () => {
     handleProcessText(pasteText)
+  }
+
+  const handleLoadVersion = async (id: string) => {
+    setLoadingVersionId(id)
+    setError('')
+
+    try {
+      const loaded = await loadCloudVersion(id)
+      if (!loaded) {
+        setError('That version could not be read.')
+        return
+      }
+      onImport(loaded)
+      closeModal()
+    } catch (caught) {
+      setError(cloudErrorMessage(caught))
+    } finally {
+      setLoadingVersionId('')
+    }
   }
 
   const handlePasteClipboard = async () => {
@@ -172,10 +229,59 @@ export function ImportModal({ isOpen, onClose, onImport }: ImportModalProps) {
           >
             Paste Text
           </button>
+          {cloudEnabled && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'cloud'}
+              className={`modal-tab ${activeTab === 'cloud' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('cloud')
+                setError('')
+                setLoadingVersions(true)
+              }}
+            >
+              Cloud
+            </button>
+          )}
         </div>
 
         <div className="modal-body">
-          {activeTab === 'file' ? (
+          {activeTab === 'cloud' ? (
+            <div className="cloud-versions-pane">
+              <p className="panel-hint">
+                Load a saved version. Anyone can read these; sign in from the header to save new
+                ones.
+              </p>
+              {loadingVersions ? (
+                <p className="panel-hint">Loading versions…</p>
+              ) : versions && versions.length > 0 ? (
+                <ul className="cloud-versions">
+                  {versions.map((version) => (
+                    <li key={version.id} className="cloud-version">
+                      <div className="cloud-version-info">
+                        <p className="cloud-version-name">{version.id}</p>
+                        <p className="cloud-version-meta">
+                          {formatSavedAt(version.savedAt)} · {version.panelCount} panel(s)
+                          {version.savedBy ? ` · ${version.savedBy}` : ''}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-button"
+                        disabled={Boolean(loadingVersionId)}
+                        onClick={() => void handleLoadVersion(version.id)}
+                      >
+                        {loadingVersionId === version.id ? 'Loading…' : 'Load'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="panel-empty">No cloud versions saved yet.</p>
+              )}
+            </div>
+          ) : activeTab === 'file' ? (
             <div
               className={`import-dropzone ${isDragOver ? 'drag-over' : ''}`}
               onDragOver={(e) => {

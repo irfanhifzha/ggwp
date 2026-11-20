@@ -130,12 +130,17 @@ When writing code or assisting with features in this repository, follow these de
 ## Data, Cloud & Privacy
 
 - Data is always cached under the `greatgridworkspace:workspace` key in `localStorage`.
-- When `public/firebase-config.json` exists, the workspace also loads from and saves to a single
-  Firestore document, `workspaces/main`. Without that file the app stays fully local.
-- The Firestore rules allow public reads and require a signed-in account for writes. Use **Sign in**
-  in the header (email + password) to save changes to the cloud. Accounts are created in the
-  Firebase console.
-- No analytics or telemetry. Saving is last-write-wins; there is no live sync between tabs or users.
+- When `public/firebase-config.json` exists, the cloud is available as explicit saves. Each
+  document in the `workspaces` collection is a saved workspace that can be overwritten or created
+  from the save dialog. Without that file the app stays fully local.
+- Cloud is manual: **Export → Cloud Save** writes the current workspace to a named document
+  (existing names are suggested and overwrite), while **Import → Cloud** lists the documents and
+  loads any of them. There is no live syncing or background upload.
+- When cloud is configured, signed-out users get a read-only workspace: they can open and load
+  versions, but editing and saving require **Sign in** (email + password). Accounts are created in
+  the Firebase console.
+- The Firestore rules allow public reads and require a signed-in account for writes.
+- No analytics or telemetry.
 - **Export**: Produces a clean, human-readable JSON snapshot.
 - **Import**: Validates and sanitizes data shape; unknown panel types and invalid links are automatically stripped to protect the user's workspace.
 

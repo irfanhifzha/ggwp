@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useReadOnly } from '../read-only'
 import type { PanelPatch, TextPanel as TextPanelData } from '../types'
 
 interface TextPanelProps {
@@ -9,6 +10,7 @@ interface TextPanelProps {
 const SAVE_DELAY = 300
 
 export function TextPanel({ panel, onPatch }: TextPanelProps) {
+  const readOnly = useReadOnly()
   const [draft, setDraft] = useState(panel.text)
   const committed = useRef(panel.text)
 
@@ -38,10 +40,11 @@ export function TextPanel({ panel, onPatch }: TextPanelProps) {
       value={draft}
       aria-label={panel.title || 'Text panel'}
       placeholder="Start writing…"
+      readOnly={readOnly}
       spellCheck
       onChange={(event) => setDraft(event.target.value)}
       onBlur={() => {
-        if (draft === committed.current) return
+        if (readOnly || draft === committed.current) return
         committed.current = draft
         onPatch(panel.id, { text: draft })
       }}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useReadOnly } from '../read-only'
 import type { Panel, PanelPatch } from '../types'
 
 interface PanelShellProps {
@@ -34,6 +35,8 @@ export function PanelShell({
   isDropTarget,
   children,
 }: PanelShellProps) {
+  const readOnly = useReadOnly()
+
   return (
     <article
       className={`panel${isDragging ? ' panel-dragging' : ''}${
@@ -44,22 +47,23 @@ export function PanelShell({
         gridRow: `span ${panel.rowSpan}`,
       }}
       onDragOver={(event) => {
-        if (!event.dataTransfer.types.includes('text/plain')) return
+        if (readOnly || !event.dataTransfer.types.includes('text/plain')) return
         event.preventDefault()
         onDragOverPanel(panel.id)
       }}
       onDrop={(event) => {
         event.preventDefault()
-        onDropOn(panel.id)
+        if (!readOnly) onDropOn(panel.id)
       }}
     >
       <header className="panel-head">
         <span
           className="panel-grip"
-          draggable
+          draggable={!readOnly}
           aria-hidden="true"
-          title="Drag to rearrange"
+          title={readOnly ? undefined : 'Drag to rearrange'}
           onDragStart={(event) => {
+            if (readOnly) return
             event.dataTransfer.effectAllowed = 'move'
             event.dataTransfer.setData('text/plain', panel.id)
             onDragStart(panel.id)
@@ -74,6 +78,7 @@ export function PanelShell({
           value={panel.title}
           aria-label="Panel title"
           placeholder={panel.type === 'text' ? 'Untitled note' : 'Untitled panel'}
+          disabled={readOnly}
           onChange={(event) => onPatch(panel.id, { title: event.target.value })}
         />
 
@@ -83,7 +88,7 @@ export function PanelShell({
             className="icon-button"
             title="Move panel back"
             aria-label="Move panel back"
-            disabled={!canMoveUp}
+            disabled={readOnly || !canMoveUp}
             onClick={() => onMove(panel.id, -1)}
           >
             ←
@@ -93,7 +98,7 @@ export function PanelShell({
             className="icon-button"
             title="Move panel forward"
             aria-label="Move panel forward"
-            disabled={!canMoveDown}
+            disabled={readOnly || !canMoveDown}
             onClick={() => onMove(panel.id, 1)}
           >
             →
@@ -103,7 +108,7 @@ export function PanelShell({
             className="icon-button"
             title="Make narrower"
             aria-label="Make panel narrower"
-            disabled={panel.colSpan <= 1}
+            disabled={readOnly || panel.colSpan <= 1}
             onClick={() => onPatch(panel.id, { colSpan: panel.colSpan - 1 })}
           >
             ◄
@@ -113,7 +118,7 @@ export function PanelShell({
             className="icon-button"
             title="Make wider"
             aria-label="Make panel wider"
-            disabled={panel.colSpan >= columns}
+            disabled={readOnly || panel.colSpan >= columns}
             onClick={() => onPatch(panel.id, { colSpan: panel.colSpan + 1 })}
           >
             ►
@@ -123,7 +128,7 @@ export function PanelShell({
             className="icon-button"
             title="Make shorter"
             aria-label="Make panel shorter"
-            disabled={panel.rowSpan <= 1}
+            disabled={readOnly || panel.rowSpan <= 1}
             onClick={() => onPatch(panel.id, { rowSpan: panel.rowSpan - 1 })}
           >
             ▲
@@ -133,7 +138,7 @@ export function PanelShell({
             className="icon-button"
             title="Make taller"
             aria-label="Make panel taller"
-            disabled={panel.rowSpan >= 4}
+            disabled={readOnly || panel.rowSpan >= 4}
             onClick={() => onPatch(panel.id, { rowSpan: panel.rowSpan + 1 })}
           >
             ▼
@@ -143,6 +148,7 @@ export function PanelShell({
             className="icon-button icon-button-danger"
             title="Remove panel"
             aria-label={`Remove ${panel.title || panel.type} panel`}
+            disabled={readOnly}
             onClick={() => onRemove(panel.id)}
           >
             ✕

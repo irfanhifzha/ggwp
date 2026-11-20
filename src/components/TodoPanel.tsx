@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useReadOnly } from '../read-only'
 import { createId } from '../storage'
 import type { PanelPatch, Todo, TodoPanel as TodoPanelData } from '../types'
 
@@ -15,6 +16,7 @@ interface Draft {
 const EMPTY_DRAFT: Draft = { title: '', description: '' }
 
 export function TodoPanel({ panel, onPatch }: TodoPanelProps) {
+  const readOnly = useReadOnly()
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
   const [error, setError] = useState('')
 
@@ -55,6 +57,7 @@ export function TodoPanel({ panel, onPatch }: TodoPanelProps) {
           value={draft.title}
           aria-label="Task title"
           placeholder="What needs doing?"
+          disabled={readOnly}
           onChange={(event) => setDraft({ ...draft, title: event.target.value })}
         />
         <div className="todo-form-row">
@@ -63,9 +66,10 @@ export function TodoPanel({ panel, onPatch }: TodoPanelProps) {
             value={draft.description}
             aria-label="Task description"
             placeholder="Description (optional)"
+            disabled={readOnly}
             onChange={(event) => setDraft({ ...draft, description: event.target.value })}
           />
-          <button type="submit" className="toolbar-button">
+          <button type="submit" className="toolbar-button" disabled={readOnly}>
             Add
           </button>
         </div>
@@ -82,6 +86,7 @@ export function TodoPanel({ panel, onPatch }: TodoPanelProps) {
                 type="checkbox"
                 className="todo-check"
                 checked={todo.done}
+                disabled={readOnly}
                 aria-label={`Mark ${todo.title} as ${todo.done ? 'not done' : 'done'}`}
                 onChange={() => toggleTodo(todo.id)}
               />
@@ -94,6 +99,7 @@ export function TodoPanel({ panel, onPatch }: TodoPanelProps) {
                 className="icon-button icon-button-danger"
                 title="Delete task"
                 aria-label={`Delete ${todo.title}`}
+                disabled={readOnly}
                 onClick={() => saveTodos(panel.todos.filter((item) => item.id !== todo.id))}
               >
                 ✕

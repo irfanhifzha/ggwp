@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useReadOnly } from '../read-only'
 import type { PanelPatch, PanelType, WorkspaceData } from '../types'
 import { PanelContent } from './PanelContent'
 import { PanelShell } from './PanelShell'
@@ -13,6 +14,7 @@ interface WorkspaceProps {
 }
 
 export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onAdd }: WorkspaceProps) {
+  const readOnly = useReadOnly()
   const [draggingId, setDraggingId] = useState('')
   const [overId, setOverId] = useState('')
 
@@ -21,13 +23,28 @@ export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onA
       <div className="workspace-empty">
         <p>Your workspace is empty.</p>
         <div className="workspace-empty-actions">
-          <button type="button" className="text-button" onClick={() => onAdd('text')}>
+          <button
+            type="button"
+            className="text-button"
+            disabled={readOnly}
+            onClick={() => onAdd('text')}
+          >
             Add text panel
           </button>
-          <button type="button" className="text-button" onClick={() => onAdd('pdf')}>
+          <button
+            type="button"
+            className="text-button"
+            disabled={readOnly}
+            onClick={() => onAdd('pdf')}
+          >
             Add PDF panel
           </button>
-          <button type="button" className="text-button" onClick={() => onAdd('bookmarks')}>
+          <button
+            type="button"
+            className="text-button"
+            disabled={readOnly}
+            onClick={() => onAdd('bookmarks')}
+          >
             Add bookmarks panel
           </button>
         </div>

@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  cloudErrorMessage,
+  listCloudVersions,
+  saveCloudVersion,
+  type CloudVersion,
+} from '../cloud'
 import { saveTextFile } from '../platform'
 import { exportFileName, serializeWorkspace } from '../storage'
 import type { WorkspaceData } from '../types'
@@ -6,15 +12,40 @@ import type { WorkspaceData } from '../types'
 interface ExportModalProps {
   isOpen: boolean
   workspace: WorkspaceData
+  cloudEnabled: boolean
+  cloudUser: string | null
   onClose: () => void
   onNotice?: (message: string) => void
 }
 
-type Tab = 'file' | 'text'
+type Tab = 'file' | 'text' | 'cloud'
 
-export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModalProps) {
+function defaultSaveName(): string {
+  const stamp = new Date().toISOString().slice(0, 16).replace('T', '-').replace(':', '')
+  return `workspace-${stamp}`
+}
+
+function formatSavedAt(value: string): string {
+  if (!value) return 'Unknown date'
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString()
+}
+
+export function ExportModal({
+  isOpen,
+  workspace,
+  cloudEnabled,
+  cloudUser,
+  onClose,
+  onNotice,
+}: ExportModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('file')
   const [copied, setCopied] = useState(false)
+  const [savingId, setSavingId] = useState('')
+  const [cloudError, setCloudError] = useState('')
+  const [cloudSaved, setCloudSaved] = useState('')
+  const [saveName, setSaveName] = useState('')
+  const [cloudVersions, setCloudVersions] = useState<CloudVersion[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const jsonString = useMemo(() => serializeWorkspace(workspace), [workspace])
@@ -23,8 +54,26 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
 
   const closeModal = useCallback(() => {
     setCopied(false)
+    setCloudSaved('')
+    setCloudError('')
     onClose()
   }, [onClose])
+
+  // Existing documents are shown as overwrite targets.
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'cloud' || !cloudEnabled) return
+    let cancelled = false
+
+    void listCloudVersions()
+      .then((list) => {
+        if (!cancelled) setCloudVersions(list)
+      })
+      .catch(() => {})
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, activeTab, cloudEnabled])
 
   // Close on Escape key
   useEffect(() => {
@@ -47,6 +96,31 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
   }, [isOpen, activeTab])
 
   if (!isOpen) return null
+
+  const handleCloudSave = async (name: string) => {
+    if (!name.trim()) {
+      setCloudError('Enter a name for this save.')
+      return
+    }
+
+    setSavingId(name.trim())
+    setCloudError('')
+    setCloudSaved('')
+
+    try {
+      const saved = await saveCloudVersion(workspace, name)
+      setCloudSaved(saved.id)
+      onNotice?.(`Saved to ${saved.id}.`)
+      setCloudVersions(await listCloudVersions())
+    } catch (error) {
+      setCloudError(cloudErrorMessage(error))
+    } finally {
+      setSavingId('')
+    }
+  }
+
+  const trimmedSaveName = saveName.trim()
+  const willOverwrite = cloudVersions.some((version) => version.id === trimmedSaveName)
 
   const handleDownload = async () => {
     try {
@@ -127,10 +201,96 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
           >
             Copy Text
           </button>
+          {cloudEnabled && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === 'cloud'}
+              className={`modal-tab ${activeTab === 'cloud' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('cloud')
+                if (!saveName) setSaveName(defaultSaveName())
+              }}
+            >
+              Cloud Save
+            </button>
+          )}
         </div>
 
         <div className="modal-body">
-          {activeTab === 'file' ? (
+          {activeTab === 'cloud' ? (
+            <div className="cloud-save-pane">
+              <p className="panel-hint">
+                Save this workspace as a new document, or overwrite an existing one.
+              </p>
+
+              <label className="auth-label" htmlFor="cloud-save-name">
+                Save as
+              </label>
+              <input
+                id="cloud-save-name"
+                className="field"
+                value={saveName}
+                placeholder="workspace-name"
+                spellCheck={false}
+                onChange={(event) => {
+                  setSaveName(event.target.value)
+                  setCloudSaved('')
+                }}
+              />
+              <p className="panel-hint">
+                {willOverwrite
+                  ? 'An existing document will be overwritten.'
+                  : 'A new document will be created.'}
+              </p>
+
+              <div className="export-meta">
+                <span className="export-meta-item">{workspace.panels.length} panel(s)</span>
+                <span className="export-meta-dot">•</span>
+                <span className="export-meta-item">{workspace.columns} column(s)</span>
+              </div>
+              <p className="panel-hint">
+                {cloudUser ? `Signed in as ${cloudUser}.` : 'Sign in from the header to save.'}
+              </p>
+
+              {cloudVersions.length > 0 && (
+                <div className="cloud-versions-pane">
+                  <p className="panel-hint">Or overwrite an existing document:</p>
+                  <ul className="cloud-versions">
+                    {cloudVersions.map((version) => (
+                      <li key={version.id} className="cloud-version">
+                        <div className="cloud-version-info">
+                          <p className="cloud-version-name">{version.id}</p>
+                          <p className="cloud-version-meta">
+                            {formatSavedAt(version.savedAt)} · {version.panelCount} panel(s)
+                            {version.savedBy ? ` · ${version.savedBy}` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="text-button"
+                          disabled={!cloudUser || Boolean(savingId)}
+                          onClick={() => void handleCloudSave(version.id)}
+                        >
+                          {savingId === version.id ? 'Saving…' : 'Overwrite'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {cloudError && (
+                <p className="form-error" role="alert">
+                  {cloudError}
+                </p>
+              )}
+              {cloudSaved && (
+                <p className="panel-hint" role="status">
+                  Saved to {cloudSaved}.
+                </p>
+              )}
+            </div>
+          ) : activeTab === 'file' ? (
             <div className="export-file-pane">
               <div className="export-file-icon" aria-hidden="true">
                 💾
@@ -190,13 +350,22 @@ export function ExportModal({ isOpen, workspace, onClose, onNotice }: ExportModa
             >
               Download File
             </button>
-          ) : (
+          ) : activeTab === 'text' ? (
             <button
               type="button"
               className="toolbar-button"
               onClick={handleCopy}
             >
               {copied ? '✓ Copied!' : 'Copy to Clipboard'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="toolbar-button"
+              disabled={!cloudUser || Boolean(savingId) || !trimmedSaveName}
+              onClick={() => void handleCloudSave(saveName)}
+            >
+              {savingId ? 'Saving…' : willOverwrite ? 'Overwrite' : 'Save'}
             </button>
           )}
         </div>

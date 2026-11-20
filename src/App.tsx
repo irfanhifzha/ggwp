@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
-import {
-  cloudErrorMessage,
-  loadCloudWorkspace,
-  saveCloudWorkspace,
-  signOutCloud,
-  watchCloudUser,
-} from './cloud'
+import { cloudErrorMessage, signOutCloud, watchCloudUser } from './cloud'
 import { AuthModal } from './components/AuthModal'
 import { ExportModal } from './components/ExportModal'
 import { ImportModal } from './components/ImportModal'
 import { Workspace } from './components/Workspace'
 import { initializeFirebase } from './firebase'
 import { confirmAction, onBeforeQuit } from './platform'
+import { ReadOnlyContext } from './read-only'
 import {
   MAX_COLUMNS,
   MIN_COLUMNS,
@@ -31,10 +26,10 @@ const ADD_BUTTONS: { type: PanelType; label: string }[] = [
   { type: 'todo', label: '+ Todo' },
 ]
 
-type CloudStatus = 'loading' | 'ready' | 'saving' | 'saved' | 'error' | 'disabled'
+type CloudStatus = 'loading' | 'ready' | 'disabled'
 
 function App() {
-  const [workspace, setWorkspaceState] = useState<WorkspaceData>(loadWorkspace)
+  const [workspace, setWorkspace] = useState<WorkspaceData>(loadWorkspace)
   const [cloudUser, setCloudUser] = useState<string | null>(null)
   const [cloudStatus, setCloudStatus] = useState<CloudStatus>('loading')
   const [notice, setNotice] = useState('')
@@ -42,32 +37,17 @@ function App() {
   const [isExportOpen, setIsExportOpen] = useState(false)
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const workspaceRef = useRef(workspace)
-  const dirtyRef = useRef(false)
 
-  // User edits go through here so a cloud load can never be written straight back.
-  const setWorkspace = useCallback((updater: (current: WorkspaceData) => WorkspaceData) => {
-    dirtyRef.current = true
-    setWorkspaceState(updater)
-  }, [])
+  // Signed-out users with cloud available get a read-only workspace; a build
+  // without Firebase config stays a normal local-only app.
+  const readOnly = cloudStatus === 'ready' && !cloudUser
 
   useEffect(() => {
     workspaceRef.current = workspace
-    const timer = setTimeout(() => {
-      saveWorkspace(workspace)
-
-      if (!dirtyRef.current || !cloudUser) return
-      setCloudStatus('saving')
-      saveCloudWorkspace(workspace)
-        .then(() => setCloudStatus('saved'))
-        .catch((error: unknown) => {
-          setCloudStatus('error')
-          setNotice(cloudErrorMessage(error))
-        })
-    }, 400)
+    const timer = setTimeout(() => saveWorkspace(workspace), 400)
     return () => clearTimeout(timer)
-  }, [workspace, cloudUser])
+  }, [workspace])
 
-  // Cloud data is the shared source of truth; without a config file the app stays local-only.
   useEffect(() => {
     let cancelled = false
     let unsubscribe = () => {}
@@ -80,6 +60,7 @@ function App() {
         return
       }
 
+      setCloudStatus('ready')
       void watchCloudUser((user) => {
         if (cancelled) return
         setCloudUser(user ? user.displayName || user.email || 'Signed in' : null)
@@ -89,20 +70,6 @@ function App() {
           else unsubscribe = stop
         })
         .catch(() => {})
-
-      try {
-        const remote = await loadCloudWorkspace()
-        if (cancelled) return
-        if (remote) {
-          setWorkspaceState(remote)
-          dirtyRef.current = false
-        }
-        setCloudStatus('ready')
-      } catch (error) {
-        if (cancelled) return
-        setCloudStatus('error')
-        setNotice(cloudErrorMessage(error))
-      }
     })()
 
     return () => {
@@ -140,7 +107,7 @@ function App() {
       ...current,
       panels: [...current.panels, createPanel(type)],
     }))
-  }, [setWorkspace])
+  }, [])
 
   const patchPanel = useCallback((id: string, patch: PanelPatch) => {
     setWorkspace((current) => ({
@@ -149,14 +116,14 @@ function App() {
         panel.id === id ? ({ ...panel, ...patch } as Panel) : panel,
       ),
     }))
-  }, [setWorkspace])
+  }, [])
 
   const removePanel = useCallback((id: string) => {
     setWorkspace((current) => ({
       ...current,
       panels: current.panels.filter((panel) => panel.id !== id),
     }))
-  }, [setWorkspace])
+  }, [])
 
   const movePanel = useCallback((id: string, direction: -1 | 1) => {
     setWorkspace((current) => {
@@ -168,7 +135,7 @@ function App() {
       ;[panels[index], panels[target]] = [panels[target], panels[index]]
       return { ...current, panels }
     })
-  }, [setWorkspace])
+  }, [])
 
   const setColumns = useCallback((next: number) => {
     setWorkspace((current) => {
@@ -181,7 +148,7 @@ function App() {
         ),
       }
     })
-  }, [setWorkspace])
+  }, [])
 
   const reorderPanel = useCallback((id: string, targetId: string) => {
     setWorkspace((current) => {
@@ -194,7 +161,7 @@ function App() {
       panels.splice(to, 0, moved)
       return { ...current, panels }
     })
-  }, [setWorkspace])
+  }, [])
 
   const handleSignIn = useCallback(() => setIsAuthOpen(true), [])
 
@@ -209,7 +176,7 @@ function App() {
     if (!confirmed) return
 
     clearWorkspace()
-    setWorkspace(() => ({ columns: 2, panels: [] }))
+    setWorkspace({ columns: 2, panels: [] })
     setNotice('Workspace cleared.')
   }
 
@@ -223,7 +190,7 @@ function App() {
             type="button"
             className="icon-button"
             aria-label="Use fewer columns"
-            disabled={workspace.columns <= MIN_COLUMNS}
+            disabled={readOnly || workspace.columns <= MIN_COLUMNS}
             onClick={() => setColumns(workspace.columns - 1)}
           >
             −
@@ -235,7 +202,7 @@ function App() {
             type="button"
             className="icon-button"
             aria-label="Use more columns"
-            disabled={workspace.columns >= MAX_COLUMNS}
+            disabled={readOnly || workspace.columns >= MAX_COLUMNS}
             onClick={() => setColumns(workspace.columns + 1)}
           >
             +
@@ -247,6 +214,7 @@ function App() {
               key={button.type}
               type="button"
               className="toolbar-button"
+              disabled={readOnly}
               onClick={() => addPanel(button.type)}
             >
               {button.label}
@@ -269,26 +237,28 @@ function App() {
           >
             Import
           </button>
-          <button type="button" className="text-button text-button-danger" onClick={clearAll}>
+          <button
+            type="button"
+            className="text-button text-button-danger"
+            disabled={readOnly}
+            onClick={clearAll}
+          >
             Clear all
           </button>
         </div>
 
         {cloudStatus !== 'disabled' && (
           <div className="cloud-control">
-            <span className={`cloud-dot cloud-dot-${cloudStatus}`} aria-hidden="true" />
+            <span
+              className={`cloud-dot${cloudStatus === 'ready' ? ' cloud-dot-ready' : ''}`}
+              aria-hidden="true"
+            />
             <span className="cloud-label" title={cloudUser ?? undefined}>
               {cloudStatus === 'loading'
-                ? 'Loading cloud…'
-                : cloudStatus === 'saving'
-                  ? 'Saving…'
-                  : cloudStatus === 'saved'
-                    ? 'Saved to cloud'
-                    : cloudStatus === 'error'
-                      ? 'Cloud error'
-                      : cloudUser
-                        ? `Cloud · ${cloudUser}`
-                        : 'Read-only'}
+                ? 'Cloud…'
+                : cloudUser
+                  ? `Cloud · ${cloudUser}`
+                  : 'Read-only · sign in to edit'}
             </span>
             {cloudUser ? (
               <button type="button" className="text-button" onClick={handleSignOut}>
@@ -310,14 +280,16 @@ function App() {
       </header>
 
       <main className="app-main">
-        <Workspace
-          workspace={workspace}
-          onPatch={patchPanel}
-          onRemove={removePanel}
-          onMove={movePanel}
-          onReorder={reorderPanel}
-          onAdd={addPanel}
-        />
+        <ReadOnlyContext.Provider value={readOnly}>
+          <Workspace
+            workspace={workspace}
+            onPatch={patchPanel}
+            onRemove={removePanel}
+            onMove={movePanel}
+            onReorder={reorderPanel}
+            onAdd={addPanel}
+          />
+        </ReadOnlyContext.Provider>
       </main>
 
       {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
@@ -325,16 +297,19 @@ function App() {
       <ExportModal
         isOpen={isExportOpen}
         workspace={workspace}
+        cloudEnabled={cloudStatus === 'ready'}
+        cloudUser={cloudUser}
         onClose={() => setIsExportOpen(false)}
         onNotice={(msg) => setNotice(msg)}
       />
 
       <ImportModal
         isOpen={isImportOpen}
+        cloudEnabled={cloudStatus === 'ready'}
         onClose={() => setIsImportOpen(false)}
         onImport={(imported) => {
-          setWorkspace(() => imported)
-          setNotice(`Imported ${imported.panels.length} panel(s).`)
+          setWorkspace(imported)
+          setNotice(`Loaded ${imported.panels.length} panel(s).`)
         }}
       />
     </div>

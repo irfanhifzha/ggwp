@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { openExternal } from '../platform'
+import { useReadOnly } from '../read-only'
 import type { PanelPatch, PdfPanel as PdfPanelData } from '../types'
 import { normalizeHttpUrl } from '../url'
 
@@ -9,6 +10,7 @@ interface PdfPanelProps {
 }
 
 export function PdfPanel({ panel, onPatch }: PdfPanelProps) {
+  const readOnly = useReadOnly()
   const [field, setField] = useState({ value: panel.url, source: panel.url })
   const [error, setError] = useState('')
 
@@ -44,9 +46,10 @@ export function PdfPanel({ panel, onPatch }: PdfPanelProps) {
           placeholder="https://example.com/document.pdf"
           inputMode="url"
           spellCheck={false}
+          disabled={readOnly}
           onChange={(event) => setField({ ...field, value: event.target.value })}
         />
-        <button type="submit" className="toolbar-button">
+        <button type="submit" className="toolbar-button" disabled={readOnly}>
           Load
         </button>
       </form>

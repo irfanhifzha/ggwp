@@ -3,33 +3,95 @@ import { initializeFirebase } from './firebase'
 import { SCHEMA_VERSION, parseWorkspace } from './storage'
 import type { WorkspaceData } from './types'
 
-/** One shared document: everyone can read it, only signed-in users can write. */
+/**
+ * Each document in this collection is a saved workspace. A save writes into the
+ * chosen document (overwriting it) or creates a new one. Anyone can read them;
+ * only signed-in users can write.
+ */
 const WORKSPACE_COLLECTION = 'workspaces'
-const WORKSPACE_ID = 'main'
 
-export async function loadCloudWorkspace(): Promise<WorkspaceData | null> {
+export interface CloudVersion {
+  id: string
+  savedAt: string
+  savedBy: string
+  panelCount: number
+}
+
+export async function saveCloudVersion(
+  workspace: WorkspaceData,
+  id: string,
+): Promise<CloudVersion> {
+  const services = await initializeFirebase()
+  if (!services) throw new Error('Cloud storage is not configured.')
+
+  const name = id.trim()
+  if (!name || name.includes('/') || name === '.' || name === '..') {
+    throw new Error('Choose a name that is not empty and does not contain "/".')
+  }
+
+  const { doc, setDoc } = await import('firebase/firestore')
+  const user = services.auth.currentUser
+  const savedAt = new Date().toISOString()
+  const savedBy = user?.email ?? user?.uid ?? 'unknown'
+
+  await setDoc(doc(services.db, WORKSPACE_COLLECTION, name), {
+    version: SCHEMA_VERSION,
+    columns: workspace.columns,
+    panels: workspace.panels,
+    savedAt,
+    savedBy,
+  })
+
+  return { id: name, savedAt, savedBy, panelCount: workspace.panels.length }
+}
+
+function readDate(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (
+    value !== null &&
+    typeof value === 'object' &&
+    'toDate' in value &&
+    typeof (value as { toDate: unknown }).toDate === 'function'
+  ) {
+    try {
+      return (value as { toDate: () => Date }).toDate().toISOString()
+    } catch {
+      return ''
+    }
+  }
+  return ''
+}
+
+export async function listCloudVersions(): Promise<CloudVersion[]> {
+  const services = await initializeFirebase()
+  if (!services) return []
+
+  const { collection, getDocs } = await import('firebase/firestore')
+  const snapshot = await getDocs(collection(services.db, WORKSPACE_COLLECTION))
+
+  return snapshot.docs
+    .map((entry) => {
+      const data = entry.data()
+      return {
+        id: entry.id,
+        // Older snapshots stored a server `updatedAt` timestamp instead.
+        savedAt: readDate(data.savedAt) || readDate(data.updatedAt),
+        savedBy: typeof data.savedBy === 'string' ? data.savedBy : '',
+        panelCount: Array.isArray(data.panels) ? data.panels.length : 0,
+      }
+    })
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt))
+}
+
+export async function loadCloudVersion(id: string): Promise<WorkspaceData | null> {
   const services = await initializeFirebase()
   if (!services) return null
 
   const { doc, getDoc } = await import('firebase/firestore')
-  const snapshot = await getDoc(doc(services.db, WORKSPACE_COLLECTION, WORKSPACE_ID))
+  const snapshot = await getDoc(doc(services.db, WORKSPACE_COLLECTION, id))
   if (!snapshot.exists()) return null
 
   return parseWorkspace(snapshot.data())
-}
-
-export async function saveCloudWorkspace(workspace: WorkspaceData): Promise<void> {
-  const services = await initializeFirebase()
-  if (!services) throw new Error('Cloud storage is not configured.')
-
-  const { doc, serverTimestamp, setDoc } = await import('firebase/firestore')
-  await setDoc(doc(services.db, WORKSPACE_COLLECTION, WORKSPACE_ID), {
-    version: SCHEMA_VERSION,
-    columns: workspace.columns,
-    panels: workspace.panels,
-    updatedAt: serverTimestamp(),
-    updatedBy: services.auth.currentUser?.uid ?? null,
-  })
 }
 
 export async function watchCloudUser(
@@ -89,6 +151,7 @@ export function cloudErrorMessage(error: unknown): string {
     case 'not-found':
       return 'The cloud database is not ready. Create a Firestore database in the Firebase console.'
     default:
+      if (!code && error instanceof Error && error.message) return error.message
       return 'Cloud request failed. Your changes are saved locally.'
   }
 }

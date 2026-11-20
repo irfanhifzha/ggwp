@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { openExternal } from '../platform'
+import { useReadOnly } from '../read-only'
 import { createId } from '../storage'
 import type { Bookmark, BookmarksPanel, PanelPatch } from '../types'
 import { normalizeHttpUrl } from '../url'
@@ -18,6 +19,7 @@ interface Draft {
 const EMPTY_DRAFT: Draft = { title: '', url: '', note: '' }
 
 export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
+  const readOnly = useReadOnly()
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT)
   const [error, setError] = useState('')
   const [editingId, setEditingId] = useState('')
@@ -78,6 +80,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
           value={draft.title}
           aria-label="Bookmark title"
           placeholder="Title (optional)"
+          disabled={readOnly}
           onChange={(event) => setDraft({ ...draft, title: event.target.value })}
         />
         <div className="bookmark-form-row">
@@ -88,9 +91,10 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
             placeholder="https://example.com"
             inputMode="url"
             spellCheck={false}
+            disabled={readOnly}
             onChange={(event) => setDraft({ ...draft, url: event.target.value })}
           />
-          <button type="submit" className="toolbar-button">
+          <button type="submit" className="toolbar-button" disabled={readOnly}>
             Add
           </button>
         </div>
@@ -99,6 +103,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
           value={draft.note}
           aria-label="Bookmark note"
           placeholder="Note (optional)"
+          disabled={readOnly}
           onChange={(event) => setDraft({ ...draft, note: event.target.value })}
         />
         {error && <p className="form-error">{error}</p>}
@@ -123,6 +128,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                     value={editDraft.title}
                     aria-label="Bookmark title"
                     placeholder="Title (optional)"
+                    disabled={readOnly}
                     onChange={(event) => setEditDraft({ ...editDraft, title: event.target.value })}
                   />
                   <input
@@ -131,6 +137,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                     aria-label="Bookmark URL"
                     inputMode="url"
                     spellCheck={false}
+                    disabled={readOnly}
                     onChange={(event) => setEditDraft({ ...editDraft, url: event.target.value })}
                   />
                   <input
@@ -138,11 +145,12 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                     value={editDraft.note}
                     aria-label="Bookmark note"
                     placeholder="Note (optional)"
+                    disabled={readOnly}
                     onChange={(event) => setEditDraft({ ...editDraft, note: event.target.value })}
                   />
                   {editError && <p className="form-error">{editError}</p>}
                   <div className="bookmark-form-actions">
-                    <button type="submit" className="toolbar-button">
+                    <button type="submit" className="toolbar-button" disabled={readOnly}>
                       Save
                     </button>
                     <button
@@ -175,6 +183,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                     className="icon-button"
                     title="Edit bookmark"
                     aria-label={`Edit ${bookmark.title || bookmark.url}`}
+                    disabled={readOnly}
                     onClick={() => startEdit(bookmark)}
                   >
                     ✎
@@ -184,6 +193,7 @@ export function BookmarkPanel({ panel, onPatch }: BookmarkPanelProps) {
                     className="icon-button icon-button-danger"
                     title="Delete bookmark"
                     aria-label={`Delete ${bookmark.title || bookmark.url}`}
+                    disabled={readOnly}
                     onClick={() =>
                       saveBookmarks(panel.bookmarks.filter((item) => item.id !== bookmark.id))
                     }

@@ -97,18 +97,8 @@
   background: var(--border-strong);
 }
 
-.cloud-dot-saved {
+.cloud-dot-ready {
   background: var(--accent);
-}
-
-.cloud-dot-loading,
-.cloud-dot-saving {
-  background: var(--accent);
-  opacity: 0.45;
-}
-
-.cloud-dot-error {
-  background: var(--danger);
 }
 
 .cloud-control .text-button {
@@ -718,6 +708,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.cloud-save-pane,
+.cloud-versions-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cloud-versions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.cloud-version {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.cloud-version-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cloud-version-name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cloud-version-meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field:disabled {
+  cursor: default;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.panel-title:disabled {
+  color: var(--text);
+  background: transparent;
+}
+
+.panel-grip[draggable='false'] {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.text-editor:read-only {
+  cursor: default;
 }
 
 .auth-form {
