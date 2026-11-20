@@ -1,13 +1,13 @@
 [package]
-name = "greatgridworkspace"
-version = "0.1.2"
+name = "greatgridezspace"
+version = "0.1.3"
 description = "A minimalist, local-first grid workspace for notes, PDFs and bookmarks"
 authors = ["ggwplab"]
 edition = "2021"
 rust-version = "1.90"
 
 [lib]
-name = "greatgridworkspace_lib"
+name = "greatgridezspace_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

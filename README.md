@@ -1,4 +1,4 @@
-# GGWP - Great Grid Work sPace
+# GGEZ — GreatGridEzSpace
 
 A minimalist, local-first grid workspace for reading, writing, and organizing information in one place. Notes, PDFs, and bookmarks live side by side in resizable panels, and everything is stored locally on your device — no accounts, no tracking, no backend required.
 
@@ -39,7 +39,7 @@ Shipped as:
 | **Read a PDF** | URL field + **Load** | Paste an `http(s)` PDF link and press Enter or Load. |
 | **Save Bookmark** | URL + Title/Note + **Add** | Save web links directly into bookmark panels. |
 | **Delete Panel** | **✕** | Permanently removes the panel from the grid. |
-| **Export Snapshot** | **Export** | Downloads a versioned JSON snapshot (`ggwp-YYYY-MM-DD.json`). |
+| **Export Snapshot** | **Export** | Downloads a versioned JSON snapshot (`ggez-YYYY-MM-DD.json`). |
 | **Import Snapshot** | **Import** | Uploads or pastes a JSON snapshot to restore panels. |
 | **Clear Workspace** | **Clear All** | Resets the workspace after explicit confirmation. |
 
@@ -96,9 +96,9 @@ When writing code or assisting with features in this repository, follow these de
 - **Desktop/Mobile Shell**: [Tauri 2](https://v2.tauri.app/) (Rust backend shell).
 - **Platform Abstraction Layer (`src/platform/`)**:
   - Code outside `src/platform/` **must not** directly import `@tauri-apps/*` packages.
-  - All native operations (`openExternal`, `saveTextFile`, `openTextFile`, `confirmAction`, `onBeforeQuit`) go through [src/platform/index.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/index.ts).
-  - Web builds dynamically import [browser.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/browser.ts), ensuring the web client never downloads Tauri native bridge code (~0 KB overhead).
-  - Desktop and mobile runtimes dynamically load [desktop.ts](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/platform/desktop.ts).
+  - All native operations (`openExternal`, `saveTextFile`, `openTextFile`, `confirmAction`, `onBeforeQuit`) go through [src/platform/index.ts](file:///Users/asdf/Downloads/newprojectweb/ggez/src/platform/index.ts).
+  - Web builds dynamically import [browser.ts](file:///Users/asdf/Downloads/newprojectweb/ggez/src/platform/browser.ts), ensuring the web client never downloads Tauri native bridge code (~0 KB overhead).
+  - Desktop and mobile runtimes dynamically load [desktop.ts](file:///Users/asdf/Downloads/newprojectweb/ggez/src/platform/desktop.ts).
 
 ### 2. Strict Lightweight & Performance Guardrails
 - **No Heavy External Dependencies**: Do **not** add bloated dependencies (no PDF.js, no drag-and-drop libraries, no heavy UI suites, no Electron).
@@ -107,29 +107,29 @@ When writing code or assisting with features in this repository, follow these de
 - **Lazy Native Elements**: Iframes and embedded viewers must retain `loading="lazy"`.
 
 ### 3. Mobile & Responsive Design Rules
-- Keep `<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />` in [index.html](file:///Users/asdf/Downloads/newprojectweb/ggwp/index.html).
+- Keep `<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />` in [index.html](file:///Users/asdf/Downloads/newprojectweb/ggez/index.html).
 - Always respect `env(safe-area-inset-top)` on `.app-bar` so Android/iOS cutouts do not overlap UI controls.
 - Do not reintroduce `grid-template-columns: 1fr !important` on `.workspace`; user-configured columns must remain functional across all screen widths.
 - Ensure panel headers wrap (`flex-wrap: wrap`) so action buttons never overflow on narrow 2-column mobile viewports.
 
 ### 4. Icon Generation & Assets
-- Source icon generator is in [scripts/make-icon.mjs](file:///Users/asdf/Downloads/newprojectweb/ggwp/scripts/make-icon.mjs) (pure Node.js + zlib, zero npm dependencies).
+- Source icon generator is in [scripts/make-icon.mjs](file:///Users/asdf/Downloads/newprojectweb/ggez/scripts/make-icon.mjs) (pure Node.js + zlib, zero npm dependencies).
 - Running `npm run icon` runs `make-icon.mjs` and invokes `tauri icon src-tauri/icons/source.png`, which updates:
-  - Desktop icons in [src-tauri/icons/](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/icons/)
-  - Android mipmaps in [src-tauri/gen/android/app/src/main/res/](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/gen/android/app/src/main/res/)
-- CI workflow in [.github/workflows/release.yml](file:///Users/asdf/Downloads/newprojectweb/ggwp/.github/workflows/release.yml) automatically runs `npm run icon` during APK builds.
+  - Desktop icons in [src-tauri/icons/](file:///Users/asdf/Downloads/newprojectweb/ggez/src-tauri/icons/)
+  - Android mipmaps in [src-tauri/gen/android/app/src/main/res/](file:///Users/asdf/Downloads/newprojectweb/ggez/src-tauri/gen/android/app/src/main/res/)
+- CI workflow in [.github/workflows/release.yml](file:///Users/asdf/Downloads/newprojectweb/ggez/.github/workflows/release.yml) automatically runs `npm run icon` during APK builds.
 
 ### 5. Versioning
 - The version string must remain synchronized across:
-  - [src-tauri/tauri.conf.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/tauri.conf.json) (`version`)
-  - [src-tauri/Cargo.toml](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/Cargo.toml) (`version`)
-  - [package.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/package.json) (`version`)
+  - [src-tauri/tauri.conf.json](file:///Users/asdf/Downloads/newprojectweb/ggez/src-tauri/tauri.conf.json) (`version`)
+  - [src-tauri/Cargo.toml](file:///Users/asdf/Downloads/newprojectweb/ggez/src-tauri/Cargo.toml) (`version`)
+  - [package.json](file:///Users/asdf/Downloads/newprojectweb/ggez/package.json) (`version`)
 
 ---
 
 ## Data, Cloud & Privacy
 
-- Data is always cached under the `greatgridworkspace:workspace` key in `localStorage`.
+- Data is always cached under the `greatgridworkspace:workspace` key in `localStorage` (kept for backwards compatibility).
 - When `public/firebase-config.json` exists, the cloud is available as explicit saves. Each
   document in the `workspaces` collection is a saved workspace that can be overwritten or created
   from the save dialog. Without that file the app stays fully local.

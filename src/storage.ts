@@ -241,5 +241,5 @@ export function serializeWorkspace(workspace: WorkspaceData): string {
 
 /** Portable default file name for an export, used by both web and desktop saves. */
 export function exportFileName(): string {
-  return `ggwp-${new Date().toISOString().slice(0, 10)}.json`
+  return `ggez-${new Date().toISOString().slice(0, 10)}.json`
 }

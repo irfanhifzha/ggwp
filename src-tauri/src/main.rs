@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    greatgridworkspace_lib::run()
+    greatgridezspace_lib::run()
 }

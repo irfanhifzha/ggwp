@@ -1397,8 +1397,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "greatgridworkspace"
-version = "0.1.2"
+name = "greatgridezspace"
+version = "0.1.3"
 dependencies = [
  "tauri",
  "tauri-build",

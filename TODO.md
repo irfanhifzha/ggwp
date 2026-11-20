@@ -1,6 +1,6 @@
-# TODO — GGWP (Great Grid Work sPace) — Desktop & Android App
+# TODO — GGEZ — Desktop & Android App
 
-> Paths below are relative to `ggwp/`.
+> Paths below are relative to `ggez/`.
 > Constraint that drives every decision below: **lightweight, fast render, minimal.**
 
 ## Implementation status
@@ -133,7 +133,7 @@ no `decorations: false` custom chrome, no animated resizes. Keep the PDF iframe 
       - `productName: "GreatGridWorkspace"`, `identifier: "dev.ggwplab.workspace"`
       - window: `1200×800`, `minWidth: 720`, `minHeight: 480`, `center: true`,
         `resizable: true`, `transparent: false`, **`dragDropEnabled: false`** (required for the
-        existing HTML5 panel-reorder drag; see 5.2), `title: "ggwp"`.
+        existing HTML5 panel-reorder drag; see 5.2), `title: "ggez"`.
       - `app.security.csp`: start with `null` for the first run, then tighten in Phase 5.
       - bundle targets: `["nsis", "dmg", "app"]` (or `["nsis"]` on Windows-only runs).
 - [x] Added `src-tauri/.gitignore` for `target/` and `gen/schemas/`.
@@ -257,7 +257,7 @@ and `npm run build` for web has no new dependencies in the main chunk.
 - [x] Icons: `scripts/make-icon.mjs` renders a dependency-free 1024×1024 grid mark, then
       `npm run icon` generates `.ico`/`.icns` and all sizes.
 - [x] Window: OS default size/position memory (no custom persistence code).
-- [x] `app.windows[0].title` = `ggwp`, `productName` set, background `#101113` (no white flash).
+- [x] `app.windows[0].title` = `ggez`, `productName` set, background `#101113` (no white flash).
 - [x] Context menu left at the default (text panels need it).
 - [x] Native file-drop guard skipped: it conflicts with `dragDropEnabled: false` on Windows and
       the import modal already has a dropzone.

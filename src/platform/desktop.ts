@@ -29,7 +29,7 @@ export const desktopPlatform: PlatformApi = {
     }
   },
 
-  async confirmAction(message, title = 'ggwp') {
+  async confirmAction(message, title = 'ggez') {
     return confirm(message, { title, kind: 'warning' })
   },
 

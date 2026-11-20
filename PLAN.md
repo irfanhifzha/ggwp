@@ -1,9 +1,9 @@
 
-# PLAN — GreatGridWorkspace
+# PLAN — GreatGridEzSpace
 
 ## Project Overview
 
-GreatGridWorkspace is a minimalist, responsive, and lightweight web workspace designed for writing, studying, note-taking, bookmarking, and organizing information.
+GreatGridEzSpace is a minimalist, responsive, and lightweight web workspace designed for writing, studying, note-taking, bookmarking, and organizing information.
 
 The goal is to create a flexible digital workspace where users can arrange different types of content side by side, making it easier to read, write, research, and connect information without constantly switching between tabs or applications.
 
@@ -395,7 +395,7 @@ Build incrementally instead of implementing everything at once, each phase do gi
 
 ## Overall Vision
 
-GreatGridWorkspace should feel like a flexible digital desk.
+GreatGridEzSpace should feel like a flexible digital desk.
 
 Rather than forcing users into predefined pages, documents, or tabs, it provides a customizable space where different types of information can coexist.
 

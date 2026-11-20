@@ -6,8 +6,8 @@ import { writeFileSync } from 'node:fs'
 
 const SIZE = 1024
 const SS = 3 // supersampling factor for smooth edges
-const BG = [0x10, 0x11, 0x13]
-const FG = [0xd8, 0xd8, 0xd8]
+const BG = [0x0f, 0x17, 0x2a]
+const FG = [0x7d, 0xd3, 0xfc]
 const R = 44 // panel corner radius
 
 const panels = [

@@ -317,7 +317,7 @@ export function ImportModal({ isOpen, cloudEnabled, onClose, onImport }: ImportM
           ) : (
             <div className="import-paste-pane">
               <label htmlFor="import-paste-input" className="panel-hint">
-                Paste workspace JSON exported from ggwp:
+                Paste workspace JSON exported from ggez:
               </label>
               <textarea
                 id="import-paste-input"
