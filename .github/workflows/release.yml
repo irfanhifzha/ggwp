@@ -57,6 +57,21 @@ jobs:
 
       - run: npm ci
 
+      # The web config is gitignored, so release builds get it from a secret.
+      # Without the secret the build still succeeds but runs local-only.
+      - name: Write Firebase config
+        shell: bash
+        env:
+          FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG_JSON" ]; then
+            echo "::warning::FIREBASE_CONFIG_JSON is not set; this build will run local-only without cloud storage."
+            exit 0
+          fi
+          mkdir -p public
+          printf '%s\n' "$FIREBASE_CONFIG_JSON" > public/firebase-config.json
+          node -e "const c = require('./public/firebase-config.json'); if (typeof c.apiKey !== 'string' || typeof c.projectId !== 'string') { console.error('FIREBASE_CONFIG_JSON must contain apiKey and projectId'); process.exit(1); }"
+
       # tauri-action also runs beforeBuildCommand (npm run build), so a type or
       # Vite error fails the release instead of shipping a broken artifact.
       - uses: tauri-apps/tauri-action@v0
@@ -117,6 +132,21 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # The web config is gitignored, so release builds get it from a secret.
+      # Without the secret the build still succeeds but runs local-only.
+      - name: Write Firebase config
+        shell: bash
+        env:
+          FIREBASE_CONFIG_JSON: ${{ secrets.FIREBASE_CONFIG_JSON }}
+        run: |
+          if [ -z "$FIREBASE_CONFIG_JSON" ]; then
+            echo "::warning::FIREBASE_CONFIG_JSON is not set; this build will run local-only without cloud storage."
+            exit 0
+          fi
+          mkdir -p public
+          printf '%s\n' "$FIREBASE_CONFIG_JSON" > public/firebase-config.json
+          node -e "const c = require('./public/firebase-config.json'); if (typeof c.apiKey !== 'string' || typeof c.projectId !== 'string') { console.error('FIREBASE_CONFIG_JSON must contain apiKey and projectId'); process.exit(1); }"
 
       - name: Setup Android signing key
         run: |

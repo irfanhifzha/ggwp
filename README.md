@@ -154,3 +154,8 @@ npx firebase deploy --only firestore:rules
 
 The web config is gitignored. Enable the **Email/Password** provider under Firebase Authentication,
 and make sure a Firestore database exists for the project.
+
+Release builds read the same JSON from the `FIREBASE_CONFIG_JSON` repository secret (Settings →
+Secrets and variables → Actions), so the GitHub Actions installers and APK include cloud storage.
+If that secret is unset the workflow warns and ships a local-only build. Tauri's CSP allows the
+Google endpoints the Firebase SDK talks to (`*.googleapis.com`, `*.firebaseio.com`).

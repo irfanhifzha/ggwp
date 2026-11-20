@@ -1,4 +1,4 @@
-package dev.ggwplab.workspace
+package dev.ggwplab.ggez
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
