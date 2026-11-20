@@ -19,6 +19,7 @@ const ADD_BUTTONS: { type: PanelType; label: string }[] = [
   { type: 'text', label: '+ Text' },
   { type: 'pdf', label: '+ PDF' },
   { type: 'bookmarks', label: '+ Bookmarks' },
+  { type: 'todo', label: '+ Todo' },
 ]
 
 function App() {

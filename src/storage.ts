@@ -1,4 +1,4 @@
-import type { Bookmark, Panel, PanelType, WorkspaceData } from './types'
+import type { Bookmark, Panel, PanelType, Todo, WorkspaceData } from './types'
 
 export const STORAGE_KEY = 'greatgridworkspace:workspace'
 export const SCHEMA_VERSION = 1
@@ -26,6 +26,7 @@ const TITLES: Record<PanelType, string> = {
   text: 'Notes',
   pdf: 'PDF',
   bookmarks: 'Bookmarks',
+  todo: 'Todo list',
 }
 
 const emptyBookmarks = (): Bookmark[] => []
@@ -40,6 +41,8 @@ export function createPanel(type: PanelType): Panel {
       return { ...common, type, url: '' }
     case 'bookmarks':
       return { ...common, type, bookmarks: emptyBookmarks() }
+    case 'todo':
+      return { ...common, type, todos: [] }
   }
 }
 
@@ -97,11 +100,21 @@ function readBookmarks(value: unknown): Bookmark[] {
   }))
 }
 
+function readTodos(value: unknown): Todo[] {
+  if (!Array.isArray(value)) return []
+  return value.filter(isRecord).map((item) => ({
+    id: readId(item.id),
+    title: readString(item.title),
+    description: readString(item.description),
+    done: item.done === true,
+  }))
+}
+
 function readPanel(value: unknown, columns: number): Panel | null {
   if (!isRecord(value)) return null
 
   const type = value.type
-  if (type !== 'text' && type !== 'pdf' && type !== 'bookmarks') return null
+  if (type !== 'text' && type !== 'pdf' && type !== 'bookmarks' && type !== 'todo') return null
 
   const base = {
     id: readId(value.id),
@@ -117,6 +130,8 @@ function readPanel(value: unknown, columns: number): Panel | null {
       return { ...base, type, url: isHttpUrl(readString(value.url)) ? readString(value.url) : '' }
     case 'bookmarks':
       return { ...base, type, bookmarks: readBookmarks(value.bookmarks) }
+    case 'todo':
+      return { ...base, type, todos: readTodos(value.todos) }
   }
 }
 

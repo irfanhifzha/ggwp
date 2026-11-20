@@ -413,6 +413,77 @@
   gap: 2px;
 }
 
+/* Todo */
+
+.todo-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.todo-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.todo-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.todo-form-row .field {
+  flex: 1;
+}
+
+.todo-list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.todo-check {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.todo-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.todo-title {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.todo-description {
+  margin-top: 1px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.todo-item-done .todo-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
 /* ---------- Modal / Import Dialog ---------- */
 
 .modal-backdrop {
@@ -648,6 +719,11 @@
   .field,
   .text-editor {
     font-size: 16px;
+  }
+
+  .todo-check {
+    width: 20px;
+    height: 20px;
   }
 
   .panel-grip {

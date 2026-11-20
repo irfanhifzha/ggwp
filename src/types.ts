@@ -1,4 +1,4 @@
-export type PanelType = 'text' | 'pdf' | 'bookmarks'
+export type PanelType = 'text' | 'pdf' | 'bookmarks' | 'todo'
 
 export interface Bookmark {
   id: string
@@ -31,7 +31,19 @@ export interface BookmarksPanel extends PanelCommon {
   bookmarks: Bookmark[]
 }
 
-export type Panel = TextPanel | PdfPanel | BookmarksPanel
+export interface Todo {
+  id: string
+  title: string
+  description: string
+  done: boolean
+}
+
+export interface TodoPanel extends PanelCommon {
+  type: 'todo'
+  todos: Todo[]
+}
+
+export type Panel = TextPanel | PdfPanel | BookmarksPanel | TodoPanel
 
 export type PanelPatch = Partial<Panel>
 
