@@ -4,6 +4,8 @@ import type { Panel, PanelPatch } from '../types'
 interface PanelShellProps {
   panel: Panel
   columns: number
+  isActive: boolean
+  onActivate: (id: string) => void
   canMoveUp: boolean
   canMoveDown: boolean
   onPatch: (id: string, patch: PanelPatch) => void
@@ -21,6 +23,8 @@ interface PanelShellProps {
 export function PanelShell({
   panel,
   columns,
+  isActive,
+  onActivate,
   canMoveUp,
   canMoveDown,
   onPatch,
@@ -36,9 +40,13 @@ export function PanelShell({
 }: PanelShellProps) {
   return (
     <article
-      className={`panel${isDragging ? ' panel-dragging' : ''}${
+      className={`panel${isActive ? ' panel-active' : ''}${isDragging ? ' panel-dragging' : ''}${
         isDropTarget ? ' panel-drop-target' : ''
       }`}
+      data-panel-id={panel.id}
+      tabIndex={-1}
+      onFocusCapture={() => onActivate(panel.id)}
+      onPointerDown={() => onActivate(panel.id)}
       style={{
         gridColumn: `span ${Math.min(panel.colSpan, columns)}`,
         gridRow: `span ${panel.rowSpan}`,

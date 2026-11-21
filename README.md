@@ -18,6 +18,7 @@ Shipped as:
   - **PDF** — Displays PDF documents from URLs using the system/browser native viewer without heavy PDF.js bundle bloat.
   - **Bookmarks** — Save links with custom titles and notes; edit or delete inline.
 - **Layout Management** — Add, remove, resize, and reorder panels (touch/mouse drag grip `⠿` or header arrow buttons `←` / `→`).
+- **Keyboard-first** — Press **Ctrl+A** (outside a text field) to start a leader, then one key for every action: add panels, arrange/size/close, columns, import/export, clear all. Press **?** for the full cheat sheet.
 - **Autosave** — Changes commit to local storage automatically shortly after editing.
 - **JSON Export / Import** — Backup and restore your workspace snapshots across devices with automatic schema sanitization.
 - **Lightweight & Fast** — ~78 KB gzipped JavaScript bundle; zero heavy UI frameworks or Electron bloat.
@@ -42,6 +43,29 @@ Shipped as:
 | **Export Snapshot** | **Export** | Downloads a versioned JSON snapshot (`ggwp-YYYY-MM-DD.json`). |
 | **Import Snapshot** | **Import** | Uploads or pastes a JSON snapshot to restore panels. |
 | **Clear Workspace** | **Clear All** | Resets the workspace after explicit confirmation. |
+
+### Keyboard Shortcuts
+
+The app is designed to be fully usable without a mouse. Press **Ctrl+A** (or **Cmd+A** on macOS) while focus is outside a text field to start the leader, then press one key. Press **?** at any time to open the complete shortcut sheet. The selected panel is outlined; use **J** / **K** to move the selection before arranging, sizing, or closing it.
+
+| Keys after leader | Action |
+| :--- | :--- |
+| **T** / **P** / **B** / **D** | Add a text, PDF, bookmarks, or todo panel |
+| **J** / **K** | Select the next / previous panel |
+| **Enter** | Focus the selected panel's content |
+| **R** | Rename the selected panel |
+| **H** / **L** | Move the selected panel back / forward |
+| **−** / **+** | Make the selected panel narrower / wider |
+| **[** / **]** | Make the selected panel shorter / taller |
+| **X** | Close the selected panel |
+| **,** / **.** | Use fewer / more grid columns |
+| **1**–**6** | Set an exact column count |
+| **E** / **I** | Open Export / Import |
+| **C** | Clear the workspace (confirmation required) |
+| **?** | Open the full shortcut sheet |
+| **Esc** | Cancel the leader |
+
+Inside a text field, **Ctrl+A** keeps its normal select-all behaviour. The **Shortcuts** button in the header opens the same cheat sheet.
 
 ### Mobile & Touch Usage
 - **Portrait & Landscape**: The grid supports 1 to 4 columns on phones. Use **Columns − / +** to toggle between a 1-column reading feed and a 2-column side-by-side comparison view.
@@ -124,6 +148,7 @@ When writing code or assisting with features in this repository, follow these de
   - [src-tauri/tauri.conf.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/tauri.conf.json) (`version`)
   - [src-tauri/Cargo.toml](file:///Users/asdf/Downloads/newprojectweb/ggwp/src-tauri/Cargo.toml) (`version`)
   - [package.json](file:///Users/asdf/Downloads/newprojectweb/ggwp/package.json) (`version`)
+- Branch builds are labelled in the header: `main` ships `0.1.5-local`, `cloudstorage` ships `0.1.5-cloud`. Keep the three version fields and `APP_VERSION` in [src/App.tsx](file:///Users/asdf/Downloads/newprojectweb/ggwp/src/App.tsx) in sync.
 
 ---
 
@@ -134,3 +159,12 @@ All notes and links remain on the client machine:
 - No remote analytics, telemetries, or accounts.
 - **Export**: Produces a clean, human-readable JSON snapshot.
 - **Import**: Validates and sanitizes data shape; unknown panel types and invalid links are automatically stripped to protect the user's workspace.
+
+---
+
+## License
+
+GGWP — Great Grid Work sPace is free software licensed under the **GNU General Public License v3.0 only**
+(`GPL-3.0-only`). See [LICENSE.md](LICENSE.md) for the full text.
+
+Copyright (C) 2026 ggwplab.

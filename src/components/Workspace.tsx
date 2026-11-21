@@ -5,6 +5,8 @@ import { PanelShell } from './PanelShell'
 
 interface WorkspaceProps {
   workspace: WorkspaceData
+  activePanelId: string
+  onActivate: (id: string) => void
   onPatch: (id: string, patch: PanelPatch) => void
   onRemove: (id: string) => void
   onMove: (id: string, direction: -1 | 1) => void
@@ -12,7 +14,16 @@ interface WorkspaceProps {
   onAdd: (type: PanelType) => void
 }
 
-export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onAdd }: WorkspaceProps) {
+export function Workspace({
+  workspace,
+  activePanelId,
+  onActivate,
+  onPatch,
+  onRemove,
+  onMove,
+  onReorder,
+  onAdd,
+}: WorkspaceProps) {
   const [draggingId, setDraggingId] = useState('')
   const [overId, setOverId] = useState('')
 
@@ -45,6 +56,8 @@ export function Workspace({ workspace, onPatch, onRemove, onMove, onReorder, onA
           key={panel.id}
           panel={panel}
           columns={workspace.columns}
+          isActive={panel.id === activePanelId}
+          onActivate={onActivate}
           canMoveUp={index > 0}
           canMoveDown={index < workspace.panels.length - 1}
           onPatch={onPatch}

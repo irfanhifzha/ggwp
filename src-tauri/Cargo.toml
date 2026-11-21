@@ -1,8 +1,9 @@
 [package]
 name = "greatgridworkspace"
-version = "0.1.4"
+version = "0.1.5-local"
 description = "A minimalist, local-first grid workspace for notes, PDFs and bookmarks"
 authors = ["ggwplab"]
+license = "GPL-3.0-only"
 edition = "2021"
 rust-version = "1.90"
 

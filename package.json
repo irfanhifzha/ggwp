@@ -1,7 +1,7 @@
 {
   "name": "greatgridworkspace",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5-local",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -37,5 +37,6 @@
     "oxlint": "^1.90.0",
     "typescript": "~7.0.2",
     "vite": "^8.3.6"
-  }
+  },
+  "license": "GPL-3.0-only"
 }
