@@ -1398,7 +1398,7 @@ dependencies = [
 
 [[package]]
 name = "greatgridezspace"
-version = "0.1.3"
+version = "0.1.5-cloud"
 dependencies = [
  "tauri",
  "tauri-build",
